@@ -154,28 +154,28 @@ namespace Framework.SQLite3
             return SelectT<T>("WHERE rowid = " + (InIndex + 1));
         }
 
-        public T SelectTByKeyValue<T, U>(U InKey, SQLite3Operator InOperator, params int[] InValue) where T : Base, new()
+        
+        public T SelectTByKeyValue<T, U>(U InKey, SQLite3Operator InOperator, object InValue) where T : Base, new()
         {
             Assert.IsNotNull(InValue);
 
             string key;
-            if (InKey is string) key = InKey as string;
-            else if (InKey is Enum) key = InKey.ToString();
+            if (InKey is Enum) key = InKey.ToString();
+            else if (InKey is string) key = InKey as string;
             else key = Base.GetPropertyInfos(typeof(T)).Infos[InKey.GetHashCode()].Name;
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append(" WHERE ")
                 .Append(key)
-                .Append(GetOperatorString(InOperator));
-
-            if (InValue.Length == 1) stringBuilder.Append(InValue[0]);
-            else if (InValue.Length == 2) stringBuilder.Append(InValue[0]).Append(" AND ").Append(InValue[1]);
-            else Debug.LogError("参数过多！");
+                .Append(GetOperatorString(InOperator))
+                .Append("'")
+                .Append(InValue is string ? InValue.ToString().Replace("'", "''") : InValue)
+                .Append("'");
 
             return SelectT<T>(stringBuilder.ToString());
         }
 
-        private T SelectT<T>(string InCondition) where T : Base, new()
+        public T SelectT<T>(string InCondition) where T : Base, new()
         {
             Assert.IsFalse(SQLite3DbHandle.Zero == handle);
 
@@ -401,7 +401,7 @@ namespace Framework.SQLite3
 
                 PropertyInfo info = classProperty.Infos[i];
                 Type type = classProperty.Infos[i].PropertyType;
-                
+
                 if (info.PropertyType == typeof(int) || info.PropertyType == typeof(long))
                 {
                     stringBuilder.Append(" INTEGER ");
