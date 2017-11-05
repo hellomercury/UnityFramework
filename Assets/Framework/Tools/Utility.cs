@@ -163,7 +163,7 @@ namespace Framework.Tools
 
             return result;
         }
-        
+
         public static int[] RandomIndex(int InMin, int InMax, int InCount)
         {
             int length = InMax - InMin;
@@ -172,7 +172,7 @@ namespace Framework.Tools
             int[] array = new int[length];
             for (int i = 0; i < length; i++)
             {
-                array[i] = InMin + i; 
+                array[i] = InMin + i;
             }
 
             int[] result = new int[InCount];
@@ -191,7 +191,7 @@ namespace Framework.Tools
         {
             return Random.Range(0, 1.0f) < InPsb;
         }
-    
+
         public static int Max(params int[] InValues)
         {
             Assert.IsNotNull(InValues);
@@ -703,6 +703,28 @@ namespace Framework.Tools
             }
         }
         private static MD5 md5;
+        #endregion
+
+        #region Array
+        public static string ChangeArrayToString(object InObj)
+        {
+            return ChangeArrayToString((Array)InObj);
+        }
+
+        public static string ChangeArrayToString(Array InArray)
+        {
+            return string.Empty;
+        }
+
+        public static Array ChangeStringToArray(object InObj, Type InType)
+        {
+            return ChangeStringToArray(InObj.ToString(), InType);
+        }
+
+        public static Array ChangeStringToArray(string InString, Type InType)
+        {
+            return null;
+        }
         #endregion
     }
 }

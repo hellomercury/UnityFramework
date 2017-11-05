@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Framework.Tools;
+using System.Text;
 
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {

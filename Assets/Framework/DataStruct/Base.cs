@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Framework.DataStruct
@@ -105,21 +106,25 @@ namespace Framework.DataStruct
 
         private static object ConvertObj(object InObj, Type InType)
         {
-            if (typeof(int) == InType)
-                return Convert.ToInt32(InObj);
-            if (typeof(float) == InType)
-                return Convert.ToSingle(InObj);
-            if (typeof(string) == InType)
-                return Convert.ToString(InObj);
-            if (typeof(byte) == InType)
-                return Convert.ToInt16(InObj);
-            if (typeof(long) == InType)
-                return Convert.ToInt64(InObj);
-            if (typeof(double) == InType)
-                return Convert.ToDouble(InObj);
-            if (typeof(char) == InType)
-                return Convert.ToChar(InObj);
-            return Convert.ToBoolean(InObj);
+            if (InType.IsValueType) return Convert.ChangeType(InObj, InType);
+            else if (InType.IsArray)
+            {
+                Type type = InType.GetElementType();
+                string[] temp = InObj.ToString().Split('|');
+                int length = temp.Length;
+                Array array = Array.CreateInstance(type, length);
+                for (int j = 0; j < length; j++)
+                {
+                    array.SetValue(Convert.ChangeType(temp[j], type), j);
+                }
+                return array;
+            }
+            else if (InType.IsClass) return Convert.ChangeType(InObj, InType);
+            else
+            {
+                Debug.LogError("暂不支持此类型！" + InType +"," + InType.IsClass + "," + InType.IsPointer + "," + InType.IsCOMObject);
+                return null;
+            }
         }
 
         public void OnSyncOne(int InIndex, object InObj)
