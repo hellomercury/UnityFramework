@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class MenuTools
+namespace Framework.Editor
 {
-    [MenuItem("Framework/Open Files/PersistentData Folder", priority = 30)]
-    static void OpenPersistentData()
+    public class MenuTools
     {
-        System.Diagnostics.Process.Start(Application.persistentDataPath);
-    }
+        [MenuItem("Framework/Open Files/PersistentData Folder", priority = 30)]
+        static void OpenPersistentData()
+        {
+            SystemProcess.Start(Application.persistentDataPath);
+        }
 
-    [MenuItem("Framework/Open Files/Assets Folder", priority = 33)]
-    static void OpenAssets()
-    {
-        System.Diagnostics.Process.Start(Application.dataPath);
-    }
+        [MenuItem("Framework/Open Files/Assets Folder", priority = 33)]
+        static void OpenAssets()
+        {
+            SystemProcess.Start(Application.dataPath);
+        }
 
-    [MenuItem("Framework/Open Files/StreamingAssets Folder", priority = 35)]
-    static void OpenStreamingAssets()
-    {
-        System.Diagnostics.Process.Start(Application.streamingAssetsPath);
+        [MenuItem("Framework/Open Files/StreamingAssets Folder", priority = 35)]
+        static void OpenStreamingAssets()
+        {
+            SystemProcess.Start(Application.streamingAssetsPath);
+        }
     }
 }

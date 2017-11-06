@@ -44,14 +44,119 @@ public static class PlayerPrefsUtility
         ClassProperty property = InT.ClassPropertyInfos;
         for (int i = 0; i < property.Infos.Length; i++)
         {
-            sb.Append(property.Infos[i].GetValue(InT, null)).Append(",");
+            if (property.Infos[i].PropertyType.IsArray)
+            {
+                Array array = (Array)property.Infos[i].GetValue(InT, null);
+                int rank = array.Rank;
+
+                if (1 == rank)
+                {
+                    sb.Append("[").Append(GetArray(array)).Append("]").Append("|");
+                }
+                else if (2 == rank)
+                {
+                    int length1 = array.GetLength(0), length2 = array.GetLength(1);
+                    sb.Append("{");
+                    for (int j = 0; j < length1; j++)
+                    {
+                        sb.Append("{");
+                        for (int k = 0; k < length2; k++)
+                        {
+                            sb.Append(array.GetValue(j, k)).Append(",");
+                        }
+                        sb.Remove(sb.Length - 1, 1);
+                        sb.Append("},");
+                    }
+                    sb.Remove(sb.Length - 1, 1);
+                    sb.Append("}|");
+                }
+                else
+                {
+                    int[] ranks = new int[rank];
+                    int start = rank - 1, sum = 1;
+                    for (int j = 0; j < rank; j++)
+                    {
+                        sb.Append("{");
+                        ranks[j] = array.GetLength(j);
+                        sum *= ranks[j];
+                    }
+   
+                    int[] indexes = new int[rank];
+                    for (int j = 0; j < sum; j++)
+                    {
+                        int m = 0;
+                        for (int k = start; k > -1; k--)
+                        {
+                            if (indexes[k] == ranks[k])
+                            {
+                                indexes[k] = 0;
+                                ++indexes[k - 1];
+                                ++m;
+                            }
+                        }
+                        if (0 != m)
+                        {
+                            sb.Remove(sb.Length - 1, 1);
+                            for (int k = 0; k < m; k++)
+                            {
+                                sb.Append("}");
+                            }
+                            sb.Append(",");
+                            for (int k = 0; k < m; k++)
+                            {
+                                sb.Append("{");
+                            }
+                        }
+
+                        sb.Append(array.GetValue(indexes)).Append(",");
+
+                        ++indexes[start];
+                    }
+
+                    sb.Remove(sb.Length - 1, 1);
+                    for (int j = 0; j < rank; j++)
+                    {
+                        sb.Append("}");
+                    }
+                    sb.Append("|");
+                }
+            }
+            else
+                sb.Append(property.Infos[i].GetValue(InT, null)).Append("|");
         }
+        sb.Remove(sb.Length - 1, 1);
+        Debug.LogError(sb);
         SetString(property.ClassName, sb.ToString());
     }
 
-    public static T GetT<T>() where T : Base, new ()
+    private static string GetArray(Array InArray)
     {
-        ClassProperty property = Base.GetPropertyInfos(typeof (T));
+        int rank = InArray.Rank;
+        if(1 == rank)
+        {
+            StringBuilder builder = new StringBuilder(128);
+            object obj;
+            int length = InArray.Length;
+            for (int i = 0; i < length; i++)
+            {
+                obj = InArray.GetValue(i);
+                if (obj.GetType().IsArray) builder.Append("[").Append(GetArray((Array)obj)).Append("]");
+                else builder.Append(obj);
+                builder.Append(",");
+            }
+            builder.Remove(builder.Length - 1, 1);
+            return builder.ToString();
+        }
+        else
+        {
+            Debug.LogError("数组维度不为1！");
+            return null;
+        }
+    }
+
+    public static T GetT<T>() where T : Base, new()
+    {
+        ClassProperty property = Base.GetPropertyInfos(typeof(T));
         temp = GetString(property.ClassName);
 
         if (string.IsNullOrEmpty(temp)) return default(T);
@@ -61,7 +166,7 @@ public static class PlayerPrefsUtility
 
         return t;
     }
-    
+
     public static void HasKey(string InKey)
     {
         PlayerPrefs.HasKey(InKey);
@@ -119,7 +224,7 @@ public static class PlayerPrefsUtility
             PlayerPrefs.SetString(allKey, keys);
         }
     }
-    
+
     public static string GetAll()
     {
         if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
@@ -135,7 +240,7 @@ public static class PlayerPrefsUtility
                 sb.Append(temp);
                 if (temp.Contains("_i"))
                     sb.Append(",").Append(PlayerPrefs.GetInt(temp.Remove(temp.Length - 2, 2))).Append("|");
-                else if(temp.Contains("_f"))
+                else if (temp.Contains("_f"))
                     sb.Append(",").Append(PlayerPrefs.GetFloat(temp.Remove(temp.Length - 2, 2))).Append("|");
                 else if (temp.Contains("_s"))
                     sb.Append(",").Append(PlayerPrefs.GetString(temp.Replace("_s", ""))).Append("|");
@@ -161,7 +266,7 @@ public static class PlayerPrefsUtility
                 {
                     temp = data[0];
                     sb.Append(temp).Append("|");
-                    if(temp.Contains("_i"))
+                    if (temp.Contains("_i"))
                         PlayerPrefs.SetInt(temp.Remove(temp.Length - 2, 2), Convert.ToInt32(data[1]));
                     else if (temp.Contains("_f"))
                         PlayerPrefs.SetFloat(temp.Remove(temp.Length - 2, 2), Convert.ToSingle(data[1]));
