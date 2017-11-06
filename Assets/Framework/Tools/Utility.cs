@@ -337,17 +337,8 @@ namespace Framework.Tools
                 int count = InParent.childCount;
                 for (int i = 0; i < count; i++)
                 {
-                    Object.Destroy(InParent.GetChild(0).gameObject);
+                    Object.DestroyImmediate(InParent.GetChild(0).gameObject);
                 }
-            }
-        }
-
-        public static void clearPanel(Transform panel)
-        {
-            int childCount = panel.childCount;
-            for (int i = 0; i < childCount; i++)
-            {
-                GameObject.DestroyImmediate(panel.GetChild(0).gameObject);
             }
         }
 
@@ -557,46 +548,44 @@ namespace Framework.Tools
                 yield break;
             }
             timer[key] = InTime;
-
-            if (TimeType.mmss == InType)
+            int hour, minute, second;
+            switch (InType)
             {
-                int minute, second;
-                while (timer[key] > 0)
-                {
-                    minute = timer[key] % 3600 / 60;
-                    second = timer[key] % 60;
-                    InAction((minute > 9 ? "" : "0") + minute + (second > 9 ? ":" : ":0") + second);
-                    yield return wait;
-                    --timer[key];
-                    --InTime;
-                }
-                if (0 == timer[key]) InAction("00:00");
-            }
-            else if (TimeType.hhmmss == InType)
-            {
-                int hour, minute, second;
-                while (timer[key] > 0)
-                {
-                    hour = timer[key] / 3600;
-                    minute = timer[key] % 3600 / 60;
-                    second = timer[key] % 60;
-                    InAction((hour > 9 ? "" : "0") + hour + (minute > 9 ? ":" : ":0") + minute + (second > 9 ? ":" : ":0") + second);
-                    yield return wait;
-                    --timer[key];
-                    --InTime;
-                }
-                if (0 == timer[key]) InAction("00");
-            }
-            else if (TimeType.ss == InType)
-            {
-                while (timer[key] > 0)
-                {
-                    InAction(timer[key] > 9 ? timer[key].ToString() : "0" + timer[key]);
-                    yield return wait;
-                    --timer[key];
-                    --InTime;
-                }
-                if (0 == timer[key]) InAction("00:00:00");
+                case TimeType.mmss:
+                    while (timer[key] > 0)
+                    {
+                        minute = timer[key] % 3600 / 60;
+                        second = timer[key] % 60;
+                        InAction((minute > 9 ? "" : "0") + minute + (second > 9 ? ":" : ":0") + second);
+                        yield return wait;
+                        --timer[key];
+                        --InTime;
+                    }
+                    if (0 == timer[key]) InAction("00:00");
+                    break;
+                case TimeType.hhmmss:
+                    while (timer[key] > 0)
+                    {
+                        hour = timer[key] / 3600;
+                        minute = timer[key] % 3600 / 60;
+                        second = timer[key] % 60;
+                        InAction((hour > 9 ? "" : "0") + hour + (minute > 9 ? ":" : ":0") + minute + (second > 9 ? ":" : ":0") + second);
+                        yield return wait;
+                        --timer[key];
+                        --InTime;
+                    }
+                    if (0 == timer[key]) InAction("00");
+                    break;
+                case TimeType.ss:
+                    while (timer[key] > 0)
+                    {
+                        InAction(timer[key] > 9 ? timer[key].ToString() : "0" + timer[key]);
+                        yield return wait;
+                        --timer[key];
+                        --InTime;
+                    }
+                    if (0 == timer[key]) InAction("00:00:00");
+                    break;
             }
 
 
@@ -713,7 +702,122 @@ namespace Framework.Tools
 
         public static string ChangeArrayToString(Array InArray)
         {
-            return string.Empty;
+            if (null == InArray) return null;
+
+            int rank = InArray.Rank;
+            StringBuilder sb = new StringBuilder();
+            if (1 == rank)
+            {
+                int length = InArray.Length;
+                sb.Append("{");
+                object obj;
+                for (int i = 0; i < length; i++)
+                {
+                    obj = InArray.GetValue(i);
+                    if (obj.GetType().IsArray)
+                    {
+                        return GetArray(InArray);
+                    }
+                    else sb.Append(obj).Append(",");
+                }
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("}");
+            }
+            if (2 == rank)
+            {
+                int length1 = InArray.GetLength(0), length2 = InArray.GetLength(1);
+                sb.Append("{");
+                for (int j = 0; j < length1; j++)
+                {
+                    sb.Append("{");
+                    for (int k = 0; k < length2; k++)
+                    {
+                        sb.Append(InArray.GetValue(j, k)).Append(",");
+                    }
+                    sb.Remove(sb.Length - 1, 1);
+                    sb.Append("},");
+                }
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("}|");
+            }
+            else
+            {
+                int[] ranks = new int[rank];
+                int start = rank - 1, sum = 1;
+                for (int j = 0; j < rank; j++)
+                {
+                    sb.Append("{");
+                    ranks[j] = InArray.GetLength(j);
+                    sum *= ranks[j];
+                }
+
+                int[] indexes = new int[rank];
+                for (int j = 0; j < sum; j++)
+                {
+                    int m = 0;
+                    for (int k = start; k > -1; k--)
+                    {
+                        if (indexes[k] == ranks[k])
+                        {
+                            indexes[k] = 0;
+                            ++indexes[k - 1];
+                            ++m;
+                        }
+                    }
+                    if (0 != m)
+                    {
+                        sb.Remove(sb.Length - 1, 1);
+                        for (int k = 0; k < m; k++)
+                        {
+                            sb.Append("}");
+                        }
+                        sb.Append(",");
+                        for (int k = 0; k < m; k++)
+                        {
+                            sb.Append("{");
+                        }
+                    }
+
+                    sb.Append(InArray.GetValue(indexes)).Append(",");
+
+                    ++indexes[start];
+                }
+
+                sb.Remove(sb.Length - 1, 1);
+                for (int j = 0; j < rank; j++)
+                {
+                    sb.Append("}");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string GetArray(Array InArray)
+        {
+            int rank = InArray.Rank;
+            if (1 == rank)
+            {
+                StringBuilder builder = new StringBuilder(128);
+                object obj;
+                int length = InArray.Length;
+                builder.Append("[");
+                for (int i = 0; i < length; i++)
+                {
+                    obj = InArray.GetValue(i);
+                    if (obj.GetType().IsArray) builder.Append("[").Append(GetArray((Array)obj)).Append("],");
+                    else builder.Append(obj);
+                    builder.Append(",");
+                }
+                builder.Remove(builder.Length - 1, 1);
+                builder.Append("]");
+                return builder.ToString();
+            }
+            else
+            {
+                Debug.LogError("数组维度不为1！");
+                return null;
+            }
         }
 
         public static Array ChangeStringToArray(object InObj, Type InType)
@@ -723,6 +827,86 @@ namespace Framework.Tools
 
         public static Array ChangeStringToArray(string InString, Type InType)
         {
+            if (string.IsNullOrEmpty(InString)) return null;
+            int length = InString.Length;
+            List<int> rankList = new List<int>(16);
+            char[] contentCharArray = new char[InString.Length];
+            int index = -1, minIndex = -1;
+            for (int i = 0, j = 0; i < length; i++)
+            {
+                if ('{' == InString[i])
+                {
+                    ++index;
+                    if (rankList.Count == index) rankList.Add(0);
+                }
+                else if ('}' == InString[i])
+                {
+                    --index;
+                    if (-1 == index) break;
+                    if (-2 == minIndex) minIndex = index;
+                    if (minIndex >= index)
+                    {
+                        ++rankList[index];
+                        minIndex = index;
+                    }
+                }
+                else if (',' == InString[i])
+                {
+                    if (-1 == minIndex)
+                    {
+                        rankList[rankList.Count - 1] = 2;
+                        minIndex = -2;
+                    }
+                    else if (-2 == minIndex)
+                    {
+                        ++rankList[rankList.Count - 1];
+                    }
+                    contentCharArray[j] = InString[i];
+                    ++j;
+                }
+                else if (' ' != InString[i])
+                {
+                    contentCharArray[j] = InString[i];
+                    ++j;
+                }
+
+            }
+
+            int[] rankArray = rankList.ToArray();
+            length = rankArray.Length;
+            int[] arrayIndexes = new int[length];
+            minIndex = length - 1;
+            arrayIndexes[minIndex] = -1;
+
+            string[] contentStringArray = (new string(contentCharArray)).Split(',');
+            length = contentStringArray.Length;
+
+            Array array = Array.CreateInstance(InType, rankArray);
+
+            for (int i = 0; i < length; i++)
+            {
+                ++arrayIndexes[minIndex];
+                for (int j = minIndex; j > -1; j--)
+                {
+                    if (arrayIndexes[j] == rankList[j])
+                    {
+                        arrayIndexes[j] = 0;
+                        ++arrayIndexes[j - 1];
+                    }
+                    else break;
+                }
+
+                array.SetValue(Convert.ToInt32(contentStringArray[i]), arrayIndexes);
+            }
+
+            return array;
+        }
+
+        public static Array ChangeArrayToMultiArray()
+        {
+
+
+
             return null;
         }
         #endregion

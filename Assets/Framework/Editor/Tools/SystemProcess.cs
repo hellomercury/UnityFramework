@@ -4,13 +4,14 @@ namespace Framework.Editor
 {
     public class SystemProcess
     {
-        public static void Start(string InCommand, string InArgument = "")
+        public static void Start(string InCommand, string InArgument = "",
+            bool InIsCreateNoWindow = true, bool InIsErrorDialog = true, bool InIsUseShellExecute = true)
         {
             ProcessStartInfo start = new ProcessStartInfo(InCommand);
             start.Arguments = InArgument;
-            start.CreateNoWindow = false;
-            start.ErrorDialog = true;
-            start.UseShellExecute = true;
+            start.CreateNoWindow = InIsCreateNoWindow;
+            start.ErrorDialog = InIsErrorDialog;
+            start.UseShellExecute = InIsUseShellExecute;
 
             if (start.UseShellExecute)
             {

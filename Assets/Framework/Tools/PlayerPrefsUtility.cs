@@ -3,282 +3,183 @@ using System.Text;
 using Framework.DataStruct;
 using UnityEngine;
 
-public static class PlayerPrefsUtility
+namespace Framework.Tools
 {
-    public static int GetInt(string InKey, int InDeffaultValue = 0)
+    public static class PlayerPrefsUtility
     {
-        return PlayerPrefs.GetInt(InKey, InDeffaultValue);
-    }
-
-    public static float GetFloat(string InKey, float InDeffaultValue = 0)
-    {
-        return PlayerPrefs.GetFloat(InKey, InDeffaultValue);
-    }
-
-    public static string GetString(string InKey, string InDeffaultValue = null)
-    {
-        return PlayerPrefs.GetString(InKey, InDeffaultValue);
-    }
-
-    public static void SetInt(string InKey, int InValue)
-    {
-        AddKey(InKey, "_i");
-        PlayerPrefs.SetInt(InKey, InValue);
-    }
-
-    public static void SetFloat(string InKey, float InValue)
-    {
-        AddKey(InKey, "_f");
-        PlayerPrefs.SetFloat(InKey, InValue);
-    }
-
-    public static void SetString(string InKey, string InValue)
-    {
-        AddKey(InKey, "_s");
-        PlayerPrefs.SetString(InKey, InValue);
-    }
-
-    public static void SetT<T>(T InT) where T : Base
-    {
-        sb.Remove(0, sb.Length);
-        ClassProperty property = InT.ClassPropertyInfos;
-        for (int i = 0; i < property.Infos.Length; i++)
+        public static int GetInt(string InKey, int InDeffaultValue = 0)
         {
-            if (property.Infos[i].PropertyType.IsArray)
-            {
-                Array array = (Array)property.Infos[i].GetValue(InT, null);
-                int rank = array.Rank;
+            return PlayerPrefs.GetInt(InKey, InDeffaultValue);
+        }
 
-                if (1 == rank)
-                {
-                    sb.Append("[").Append(GetArray(array)).Append("]").Append("|");
-                }
-                else if (2 == rank)
-                {
-                    int length1 = array.GetLength(0), length2 = array.GetLength(1);
-                    sb.Append("{");
-                    for (int j = 0; j < length1; j++)
-                    {
-                        sb.Append("{");
-                        for (int k = 0; k < length2; k++)
-                        {
-                            sb.Append(array.GetValue(j, k)).Append(",");
-                        }
-                        sb.Remove(sb.Length - 1, 1);
-                        sb.Append("},");
-                    }
-                    sb.Remove(sb.Length - 1, 1);
-                    sb.Append("}|");
-                }
+        public static float GetFloat(string InKey, float InDeffaultValue = 0)
+        {
+            return PlayerPrefs.GetFloat(InKey, InDeffaultValue);
+        }
+
+        public static string GetString(string InKey, string InDeffaultValue = null)
+        {
+            return PlayerPrefs.GetString(InKey, InDeffaultValue);
+        }
+
+        public static void SetInt(string InKey, int InValue)
+        {
+            AddKey(InKey, "_i");
+            PlayerPrefs.SetInt(InKey, InValue);
+        }
+
+        public static void SetFloat(string InKey, float InValue)
+        {
+            AddKey(InKey, "_f");
+            PlayerPrefs.SetFloat(InKey, InValue);
+        }
+
+        public static void SetString(string InKey, string InValue)
+        {
+            AddKey(InKey, "_s");
+            PlayerPrefs.SetString(InKey, InValue);
+        }
+
+        public static void SetT<T>(T InT) where T : Base
+        {
+            sb.Remove(0, sb.Length);
+            ClassProperty property = InT.ClassPropertyInfos;
+            for (int i = 0; i < property.Infos.Length; i++)
+            {
+                if (property.Infos[i].PropertyType.IsArray)
+                    sb.Append(Utility.ChangeArrayToString((Array)property.Infos[i].GetValue(InT, null))).Append("|");
                 else
-                {
-                    int[] ranks = new int[rank];
-                    int start = rank - 1, sum = 1;
-                    for (int j = 0; j < rank; j++)
-                    {
-                        sb.Append("{");
-                        ranks[j] = array.GetLength(j);
-                        sum *= ranks[j];
-                    }
-   
-                    int[] indexes = new int[rank];
-                    for (int j = 0; j < sum; j++)
-                    {
-                        int m = 0;
-                        for (int k = start; k > -1; k--)
-                        {
-                            if (indexes[k] == ranks[k])
-                            {
-                                indexes[k] = 0;
-                                ++indexes[k - 1];
-                                ++m;
-                            }
-                        }
-                        if (0 != m)
-                        {
-                            sb.Remove(sb.Length - 1, 1);
-                            for (int k = 0; k < m; k++)
-                            {
-                                sb.Append("}");
-                            }
-                            sb.Append(",");
-                            for (int k = 0; k < m; k++)
-                            {
-                                sb.Append("{");
-                            }
-                        }
-
-                        sb.Append(array.GetValue(indexes)).Append(",");
-
-                        ++indexes[start];
-                    }
-
-                    sb.Remove(sb.Length - 1, 1);
-                    for (int j = 0; j < rank; j++)
-                    {
-                        sb.Append("}");
-                    }
-                    sb.Append("|");
-                }
+                    sb.Append(property.Infos[i].GetValue(InT, null)).Append("|");
             }
-            else
-                sb.Append(property.Infos[i].GetValue(InT, null)).Append("|");
+            sb.Remove(sb.Length - 1, 1);
+            Debug.LogError(sb);
+            SetString(property.ClassName, sb.ToString());
         }
-        sb.Remove(sb.Length - 1, 1);
-        Debug.LogError(sb);
-        SetString(property.ClassName, sb.ToString());
-    }
 
-    private static string GetArray(Array InArray)
-    {
-        int rank = InArray.Rank;
-        if(1 == rank)
+        public static T GetT<T>() where T : Base, new()
         {
-            StringBuilder builder = new StringBuilder(128);
-            object obj;
-            int length = InArray.Length;
-            for (int i = 0; i < length; i++)
-            {
-                obj = InArray.GetValue(i);
-                if (obj.GetType().IsArray) builder.Append("[").Append(GetArray((Array)obj)).Append("]");
-                else builder.Append(obj);
-                builder.Append(",");
-            }
-            builder.Remove(builder.Length - 1, 1);
-            return builder.ToString();
+            ClassProperty property = Base.GetPropertyInfos(typeof(T));
+            temp = GetString(property.ClassName);
+
+            if (string.IsNullOrEmpty(temp)) return default(T);
+
+            T t = new T();
+            t.OnSyncAll(InObject: temp.Split('|'));
+
+            return t;
         }
-        else
+
+        public static void HasKey(string InKey)
         {
-            Debug.LogError("数组维度不为1！");
-            return null;
+            PlayerPrefs.HasKey(InKey);
         }
-    }
 
-    public static T GetT<T>() where T : Base, new()
-    {
-        ClassProperty property = Base.GetPropertyInfos(typeof(T));
-        temp = GetString(property.ClassName);
-
-        if (string.IsNullOrEmpty(temp)) return default(T);
-
-        T t = new T();
-        t.OnSyncAll(InObject: temp.Split(','));
-
-        return t;
-    }
-
-    public static void HasKey(string InKey)
-    {
-        PlayerPrefs.HasKey(InKey);
-    }
-
-    public static void Save()
-    {
-        PlayerPrefs.Save();
-    }
-
-    public static void DeleteKey(string InKey)
-    {
-        SubKey(InKey);
-        PlayerPrefs.DeleteKey(InKey);
-    }
-
-    public static void DeleteAll()
-    {
-        keys = string.Empty;
-        PlayerPrefs.DeleteAll();
-    }
-
-    private static string keys = string.Empty;
-    private static string temp = string.Empty;
-    private const string allKey = "PLAYER_PREFS_ALL_KEY";
-    private static StringBuilder sb = new StringBuilder(256);
-    private static void AddKey(string InKey, string InType)
-    {
-        if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
-        sb.Remove(0, sb.Length);
-        temp = sb.Append(InKey).Append(InType).Append("|").ToString();
-        if (!keys.Contains(temp))
+        public static void Save()
         {
-            keys = keys + temp;
-            PlayerPrefs.SetString(allKey, keys);
+            PlayerPrefs.Save();
         }
-    }
 
-    private static void SubKey(string InKey)
-    {
-        if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
-        if (keys.Contains(InKey + "_i|"))
+        public static void DeleteKey(string InKey)
         {
-            keys = keys.Replace(InKey + "_i|", "|");
-            PlayerPrefs.SetString(allKey, keys);
+            SubKey(InKey);
+            PlayerPrefs.DeleteKey(InKey);
         }
-        else if (keys.Contains(InKey + "_f|"))
-        {
-            keys = keys.Replace(InKey + "_f|", "|");
-            PlayerPrefs.SetString(allKey, keys);
-        }
-        else if (keys.Contains(InKey + "_s|"))
-        {
-            keys = keys.Replace(InKey + "_s|", "|");
-            PlayerPrefs.SetString(allKey, keys);
-        }
-    }
 
-    public static string GetAll()
-    {
-        if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
-
-        string[] keyArray = keys.Split('|');
-        int length;
-        if ((length = keyArray.Length) > 0)
+        public static void DeleteAll()
         {
+            keys = string.Empty;
+            PlayerPrefs.DeleteAll();
+        }
+
+        private static string keys = string.Empty;
+        private static string temp = string.Empty;
+        private const string allKey = "PLAYER_PREFS_ALL_KEY";
+        private static StringBuilder sb = new StringBuilder(256);
+        private static void AddKey(string InKey, string InType)
+        {
+            if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
             sb.Remove(0, sb.Length);
-            for (int i = 0; i < length; ++i)
+            temp = sb.Append(InKey).Append(InType).Append("|").ToString();
+            if (!keys.Contains(temp))
             {
-                temp = keyArray[i];
-                sb.Append(temp);
-                if (temp.Contains("_i"))
-                    sb.Append(",").Append(PlayerPrefs.GetInt(temp.Remove(temp.Length - 2, 2))).Append("|");
-                else if (temp.Contains("_f"))
-                    sb.Append(",").Append(PlayerPrefs.GetFloat(temp.Remove(temp.Length - 2, 2))).Append("|");
-                else if (temp.Contains("_s"))
-                    sb.Append(",").Append(PlayerPrefs.GetString(temp.Replace("_s", ""))).Append("|");
+                keys = keys + temp;
+                PlayerPrefs.SetString(allKey, keys);
             }
-
-            return sb.ToString();
         }
 
-        return "";
-    }
-
-    public static void SetAll(string InValue)
-    {
-        string[] data, keyArray = InValue.Split('|');
-        int length;
-        if ((length = keyArray.Length) > 0)
+        private static void SubKey(string InKey)
         {
-            sb.Remove(0, sb.Length);
-            for (int i = 0; i < length; ++i)
+            if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
+            if (keys.Contains(InKey + "_i|"))
             {
-                data = keyArray[i].Split(',');
-                if (2 == data.Length)
+                keys = keys.Replace(InKey + "_i|", "|");
+                PlayerPrefs.SetString(allKey, keys);
+            }
+            else if (keys.Contains(InKey + "_f|"))
+            {
+                keys = keys.Replace(InKey + "_f|", "|");
+                PlayerPrefs.SetString(allKey, keys);
+            }
+            else if (keys.Contains(InKey + "_s|"))
+            {
+                keys = keys.Replace(InKey + "_s|", "|");
+                PlayerPrefs.SetString(allKey, keys);
+            }
+        }
+
+        public static string GetAll()
+        {
+            if (string.Empty == keys) keys = PlayerPrefs.GetString(allKey, string.Empty);
+
+            string[] keyArray = keys.Split('|');
+            int length;
+            if ((length = keyArray.Length) > 0)
+            {
+                sb.Remove(0, sb.Length);
+                for (int i = 0; i < length; ++i)
                 {
-                    temp = data[0];
-                    sb.Append(temp).Append("|");
+                    temp = keyArray[i];
+                    sb.Append(temp);
                     if (temp.Contains("_i"))
-                        PlayerPrefs.SetInt(temp.Remove(temp.Length - 2, 2), Convert.ToInt32(data[1]));
+                        sb.Append(",").Append(PlayerPrefs.GetInt(temp.Remove(temp.Length - 2, 2))).Append("|");
                     else if (temp.Contains("_f"))
-                        PlayerPrefs.SetFloat(temp.Remove(temp.Length - 2, 2), Convert.ToSingle(data[1]));
+                        sb.Append(",").Append(PlayerPrefs.GetFloat(temp.Remove(temp.Length - 2, 2))).Append("|");
                     else if (temp.Contains("_s"))
-                        PlayerPrefs.SetString(temp.Remove(temp.Length - 2, 2), data[1]);
+                        sb.Append(",").Append(PlayerPrefs.GetString(temp.Replace("_s", ""))).Append("|");
                 }
+
+                return sb.ToString();
             }
 
-            keys = sb.ToString();
-            PlayerPrefs.SetString(allKey, keys);
+            return "";
+        }
+
+        public static void SetAll(string InValue)
+        {
+            string[] data, keyArray = InValue.Split('|');
+            int length;
+            if ((length = keyArray.Length) > 0)
+            {
+                sb.Remove(0, sb.Length);
+                for (int i = 0; i < length; ++i)
+                {
+                    data = keyArray[i].Split(',');
+                    if (2 == data.Length)
+                    {
+                        temp = data[0];
+                        sb.Append(temp).Append("|");
+                        if (temp.Contains("_i"))
+                            PlayerPrefs.SetInt(temp.Remove(temp.Length - 2, 2), Convert.ToInt32(data[1]));
+                        else if (temp.Contains("_f"))
+                            PlayerPrefs.SetFloat(temp.Remove(temp.Length - 2, 2), Convert.ToSingle(data[1]));
+                        else if (temp.Contains("_s"))
+                            PlayerPrefs.SetString(temp.Remove(temp.Length - 2, 2), data[1]);
+                    }
+                }
+
+                keys = sb.ToString();
+                PlayerPrefs.SetString(allKey, keys);
+            }
         }
     }
 }
-
-

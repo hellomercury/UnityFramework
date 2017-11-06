@@ -5,7 +5,7 @@ namespace Framework.Editor
 {
     public class GitMenu : MonoBehaviour
     {
-        [MenuItem("Framework/Git/Open GitBase Here %g")]
+        [MenuItem("Framework/Editor/Open GitBase Here %g")]
         static void OpenGitBase()
         {
             if (Application.dataPath.Contains(":"))
@@ -17,5 +17,8 @@ namespace Framework.Editor
                 SystemProcess.Start(@"/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal", "cd " + Application.dataPath.Replace("/Assets", "/"));
             }
         }
-    } 
+
+
+    }
 }
+

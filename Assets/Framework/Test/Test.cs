@@ -26,50 +26,50 @@ namespace Framework.Test
             GUI.skin.button.fontSize = 64;
             if (GUILayout.Button("W"))
             {
-                //Player player = new Player();
-                //handle.CreateTable<Player>();
-                //int[,,] skill = new int[2, 3, 4];
-                //for (int i = 0; i < 2; i++)
-                //{
-                //    for (int j = 0; j < 3; j++)
-                //    {
-                //        for (int k = 0; k < 4; k++)
-                //        {
-                //            skill[i, j, k] = i * j * k;
-                //        }
-                //    }
-                //}
-                int[,,,] skill = new int[4,1,2,2]
-                //{{0, 1},{2,3}};
-                  {{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}};
-                //{{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}}
-                //{
-                //  {
-                //      {
-                //          {0, 1},
-                //          {2, 3}
-                //      }
-                //  },
-                //  {
-                //      {
-                //          {4, 5},
-                //          {6, 7}
-                //      }
-                //  },
-                //  {
-                //      {
-                //          {8, 9},
-                //          {10, 11}
-                //      }
-                //  },
-                //  {
-                //      {
-                //          {12, 13},
-                //          {14, 15}
-                //      }
-                //  }
-                //}
-                //
+                ////Player player = new Player();
+                ////handle.CreateTable<Player>();
+                ////int[,,] skill = new int[2, 3, 4];
+                ////for (int i = 0; i < 2; i++)
+                ////{
+                ////    for (int j = 0; j < 3; j++)
+                ////    {
+                ////        for (int k = 0; k < 4; k++)
+                ////        {
+                ////            skill[i, j, k] = i * j * k;
+                ////        }
+                ////    }
+                ////}
+                //int[,,,] skill = new int[4,1,2,2]
+                ////{{0, 1},{2,3}};
+                //  {{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}};
+                ////{{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}}
+                ////{
+                ////  {
+                ////      {
+                ////          {0, 1},
+                ////          {2, 3}
+                ////      }
+                ////  },
+                ////  {
+                ////      {
+                ////          {4, 5},
+                ////          {6, 7}
+                ////      }
+                ////  },
+                ////  {
+                ////      {
+                ////          {8, 9},
+                ////          {10, 11}
+                ////      }
+                ////  },
+                ////  {
+                ////      {
+                ////          {12, 13},
+                ////          {14, 15}
+                ////      }
+                ////  }
+                ////}
+                ////
                 int[][][] achievement = new int[2][][];
                 achievement[0] = new int[2][];
                 achievement[0][0] = new int[] { 0, 1};
@@ -79,14 +79,26 @@ namespace Framework.Test
                 achievement[1][1] = new int[] { 6, 7 };
 
 
-                //0|szn|{0,1},{2,3},}|
-                //[[0,1],[0,1,2]]
-                Player player = new Player(0, "szn", skill, achievement);
-                PlayerPrefsUtility.SetT(player);
+                ////0|szn|{0,1},{2,3},}|
+                ////[[0,1],[0,1,2]]
+                //Player player = new Player(0, "szn", skill, achievement);
+                //PlayerPrefsUtility.SetT(player);
 
-                string str = "{{{{0,1},{2,3},{2,3}},{{0,1},{2,3},{2,3}}},{{{4,5},{6,7},{2,3}},{{0,1},{2,3},{2,3}}},{{{8,9},{10,11},{2,3}},{{0,1},{2,3},{2,3}}},{{{12,13},{14,15},{2,3}},{{0,1},{2,3},{2,3}}}}";
-               
-                GetArrayByString(str, typeof(int));
+                //string str = "{{{{0,1},{2,3},{2,3}},{{0,1},{2,3},{2,3}}},{{{4,5},{6,7},{2,3}},{{0,1},{2,3},{2,3}}},{{{8,9},{10,11},{2,3}},{{0,1},{2,3},{2,3}}},{{{12,13},{14,15},{2,3}},{{0,1},{2,3},{2,3}}}}";
+                //            //{{{{0,1},{2,3},{2,3}},{{0,1},{2,3},{2,3}}},{{{4,5},{6,7},{2,3}},{{0,1},{2,3},{2,3}}},{{{8,9},{10,11},{2,3}},{{0,1},{2,3},{2,3}}},{{{12,13},{14,15},{2,3}},{{0,1},{2,3},{2,3}}}}|
+                //GetArrayByString(str, typeof(int));
+
+                Utility.ChangeStringToArray("[[[0,1],[2,3,4]],[[5],[6,7]]]", typeof(int));
+                //[
+                //  [
+                //      [0,1],
+                //      [2,3,4]
+                //  ],
+                //  [
+                //      [5],
+                //      [6,7]
+                //  ]
+                //]
             }
 
             if (GUILayout.Button("R"))
@@ -168,60 +180,7 @@ namespace Framework.Test
                 array.SetValue(Convert.ToInt32(contentStringArray[i]), arrayIndexes);
             }
 
-            int ranka = array.Rank;
-            StringBuilder sb = new StringBuilder();
-            int[] ranksa = new int[ranka];
-            int starta = ranka - 1;
-            int sum = 1;
-            for (int j = 0; j < ranka; j++)
-            {
-                sb.Append("{");
-                ranksa[j] = array.GetLength(j);
-                sum *= ranksa[j];
-            }
-
-            int[] indexesa = new int[ranka];
-            for (int j = 0; j < sum; j++)
-            {
-                int m = 0;
-                for (int k = starta; k > -1; k--)
-                {
-                    if (indexesa[k] == ranksa[k])
-                    {
-                        indexesa[k] = 0;
-                        ++indexesa[k - 1];
-                        ++m;
-                    }
-                }
-                if (0 != m)
-                {
-                    sb.Remove(sb.Length - 1, 1);
-                    for (int k = 0; k < m; k++)
-                    {
-                        sb.Append("}");
-                    }
-                    sb.Append(",");
-                    for (int k = 0; k < m; k++)
-                    {
-                        sb.Append("{");
-                    }
-                }
-
-                sb.Append(array.GetValue(indexesa)).Append(",");
-
-                ++indexesa[starta];
-            }
-
-            sb.Remove(sb.Length - 1, 1);
-            for (int j = 0; j < ranka; j++)
-            {
-                sb.Append("}");
-            }
-            sb.Append("|");
-            Debug.LogError(sb);
-
-
-            return null;
+            return array;
         }
 
     }

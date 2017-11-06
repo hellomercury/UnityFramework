@@ -1,7 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Assets/Editor/Excel2DB.meta
+guid: cd6bf90432be0e94aac7d08739766798
+folderAsset: yes
+timeCreated: 1502337368
+=======
 guid: bd3b5d6dbc5e95f4b9c41fa6c72c730e
 folderAsset: yes
 timeCreated: 1507402891
+>>>>>>> master:Assets/Editor/Excel.meta
 licenseType: Pro
 DefaultImporter:
   userData: 
