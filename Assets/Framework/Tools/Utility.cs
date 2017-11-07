@@ -852,20 +852,22 @@ namespace Framework.Tools
                 }
                 else if (',' == InString[i])
                 {
+                    
+                    contentCharArray[j] = InString[i];
+                    ++j;
+                }
+                else if (' ' != InString[i])
+                {
                     if (-1 == minIndex)
                     {
-                        rankList[rankList.Count - 1] = 2;
+                        rankList[rankList.Count - 1] = 1;
                         minIndex = -2;
                     }
                     else if (-2 == minIndex)
                     {
                         ++rankList[rankList.Count - 1];
                     }
-                    contentCharArray[j] = InString[i];
-                    ++j;
-                }
-                else if (' ' != InString[i])
-                {
+
                     contentCharArray[j] = InString[i];
                     ++j;
                 }
@@ -874,6 +876,12 @@ namespace Framework.Tools
 
             int[] rankArray = rankList.ToArray();
             length = rankArray.Length;
+            string log = string.Empty;
+            for (int i = 0; i < length; i++)
+            {
+                log += rankArray[i] + ",";
+            }
+            Debug.LogError(log);
             int[] arrayIndexes = new int[length];
             minIndex = length - 1;
             arrayIndexes[minIndex] = -1;
