@@ -9,27 +9,6 @@ namespace Framework.Editor
 {
     public class SQLite3Window : EditorWindow
     {
-        private enum ValueType
-        {
-            INTEGER,
-            REAL,
-            TEXT,
-            BLOB
-        }
-
-        private struct TableData
-        {
-            public bool IsEnable;
-            public string TableName;
-            public string[] ColumnName;
-            public ValueType[] ColumnType;
-            public string[] ColumnDescribe;
-            public bool[] IsColumnEnable;
-            public bool IsNeedCreateScript;
-
-            public ICell[][] ExcelContent;
-        }
-
         private static SQLite3Window window;
         private Vector2 scrollPos;
 
@@ -121,7 +100,8 @@ namespace Framework.Editor
                     columnLength = InExcelData[i].ColumnLength;
                     data[i].ColumnName = new string[columnLength];
                     data[i].ColumnDescribe = new string[columnLength];
-                    data[i].ColumnType = new ValueType[columnLength];
+                    data[i].SQLite3Type = new ValueType[columnLength];
+                    data[i].CSharpType = new string[columnLength];
                     data[i].IsColumnEnable = new bool[columnLength];
                     data[i].IsNeedCreateScript = true;
                     data[i].ExcelContent = InExcelData[i].Content;
@@ -129,22 +109,23 @@ namespace Framework.Editor
                     for (int j = 0; j < columnLength; ++j)
                     {
                         data[i].ColumnName[j] = InExcelData[i].Head[0][j].StringCellValue;
-                        string type = InExcelData[i].Head[1][j].StringCellValue;
-                        switch (type)
+
+                        data[i].CSharpType[j] = InExcelData[i].Head[1][j].StringCellValue;
+                        switch (data[i].CSharpType[j])
                         {
                             case "int":
                             case "bool":
-                                data[i].ColumnType[j] = ValueType.INTEGER;
+                                data[i].SQLite3Type[j] = ValueType.INTEGER;
                                 break;
                             case "float":
                             case "double":
-                                data[i].ColumnType[j] = ValueType.REAL;
+                                data[i].SQLite3Type[j] = ValueType.REAL;
                                 break;
                             case "string":
-                                data[i].ColumnType[j] = ValueType.TEXT;
+                                data[i].SQLite3Type[j] = ValueType.TEXT;
                                 break;
                             default:
-                                data[i].ColumnType[j] = ValueType.BLOB;
+                                data[i].SQLite3Type[j] = ValueType.BLOB;
                                 break;
                         }
                         if (null == InExcelData[i].Head[2] || null == InExcelData[i].Head[2][j])
@@ -309,7 +290,7 @@ namespace Framework.Editor
                                         Debug.LogWarning("Can not open the floder out of the project path!");
                                         scriptPath = path;
                                     }
-
+                                    scriptPath += "/";
                                     EditorPrefs.SetString(scriptPathKey, scriptPath);
                                 }
                             }
@@ -368,9 +349,9 @@ namespace Framework.Editor
                                                     tableData[i][j].ColumnDescribe[k] =
                                                         EditorGUILayout.TextField(tableData[i][j].ColumnDescribe[k],
                                                             GUILayout.MaxWidth(240));
-                                                    tableData[i][j].ColumnType[k] =
+                                                    tableData[i][j].SQLite3Type[k] =
                                                         (ValueType)
-                                                            EditorGUILayout.EnumPopup(tableData[i][j].ColumnType[k],
+                                                            EditorGUILayout.EnumPopup(tableData[i][j].SQLite3Type[k],
                                                                 GUILayout.MaxWidth(100));
                                                 }
                                                 GUILayout.EndHorizontal();
@@ -384,7 +365,8 @@ namespace Framework.Editor
                                         GUILayout.Space(10);
                                         if (GUILayout.Button("Create", GUILayout.Width(490)))
                                         {
-
+                                            if (tableData[i][j].IsNeedCreateScript) ScriptWriter.Writer(scriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]);
+                                            SQLite3Creator.Creator(ref tableData[i][j], dbPath.Replace("Assets/", string.Empty));
                                         }
                                     }
                                 }

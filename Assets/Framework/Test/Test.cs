@@ -71,9 +71,10 @@ namespace Framework.Test
                 ////}
                 ////
                 int[][][] achievement = new int[2][][];
-                achievement[0] = new int[2][];
+                achievement[0] = new int[3][];
                 achievement[0][0] = new int[] { 0, 1};
                 achievement[0][1] = new int[] { 2, 3, 4};
+                achievement[0][2] = new int[] { 5};
                 achievement[1] = new int[2][];
                 achievement[1][0] = new int[] { 5};
                 achievement[1][1] = new int[] { 6, 7 };
@@ -88,8 +89,8 @@ namespace Framework.Test
                 //            //{{{{0,1},{2,3},{2,3}},{{0,1},{2,3},{2,3}}},{{{4,5},{6,7},{2,3}},{{0,1},{2,3},{2,3}}},{{{8,9},{10,11},{2,3}},{{0,1},{2,3},{2,3}}},{{{12,13},{14,15},{2,3}},{{0,1},{2,3},{2,3}}}}|
                 //GetArrayByString(str, typeof(int));
 
-                Utility.ChangeStringToArray("{{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}}", typeof(int));
-                //GetArrayByString("[[[0,1],[2,3,4]],[[5],[6,7]]]", typeof(int));
+                //Utility.ChangeStringToArray("{{{{0, 1},{2, 3}}},{{{4, 5},{6, 7}}},{{{8, 9},{10, 11}}},{{{12, 13},{14, 15}}}}", typeof(int));
+                GetArrayByString("[[[0,1],[2,3,4],[6]],[[5],[6,7]]]", typeof(int));
                 //[
                 //  [
                 //      [0,1],
@@ -177,33 +178,21 @@ namespace Framework.Test
             }
             Debug.LogError(log);
 
-            return null;
-            //int[] arrayIndexes = new int[length];
-            //minIndex = length - 1;
-            //arrayIndexes[minIndex] = -1;
+            int[] arrayIndexes = new int[length];
+            minIndex = length - 1;
+            arrayIndexes[minIndex] = -1;
 
-            //string[] contentStringArray = (new string(contentCharArray)).Split(',');
-            //length = contentStringArray.Length;
-
-            //Array array = Array.CreateInstance(InType, rankArray);
+            Array array = Array.CreateInstance(InType, rankArray[0]);
 
             //for (int i = 0; i < length; i++)
             //{
-            //    ++arrayIndexes[minIndex];
-            //    for (int j = minIndex; j > -1; j--)
+            //    for (int j = 0; j < rankArray[i]; j++)
             //    {
-            //        if (arrayIndexes[j] == rankList[j])
-            //        {
-            //            arrayIndexes[j] = 0;
-            //            ++arrayIndexes[j - 1];
-            //        }
-            //        else break;
+            //        array.SetValue(Array.CreateInstance(InType, ));
             //    }
-
-            //    array.SetValue(Convert.ToInt32(contentStringArray[i]), arrayIndexes);
             //}
 
-            //return array;
+            return array;
         }
 
     }
