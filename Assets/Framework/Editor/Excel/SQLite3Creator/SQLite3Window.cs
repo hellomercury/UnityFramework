@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using NPOI.SS.UserModel;
@@ -11,6 +11,7 @@ namespace Framework.Editor
     {
         private static SQLite3Window window;
         private Vector2 scrollPos;
+        float progressValue = 1.0f;
 
         private bool isFile, preSelect;
         private TableData[][] tableData, preTableData;
@@ -18,7 +19,7 @@ namespace Framework.Editor
         private string dataPath;
         private string excelPath, preExcelPath, excelPathKey;
 
-        private string dbPath, dbPathKey;
+        private string databasePath, databasePathKey;
         private string scriptPath, scriptPathKey;
 
         [MenuItem("Framework/SQLite3 Window %&z")]
@@ -41,8 +42,8 @@ namespace Framework.Editor
 
             isFile = preSelect = string.IsNullOrEmpty(excelPath) || excelPath.Contains(".");
 
-            dbPathKey = "EditorDbPathKey";
-            dbPath = EditorPrefs.GetString(dbPathKey, dataPath);
+            databasePathKey = "EditorDbPathKey";
+            databasePath = EditorPrefs.GetString(databasePathKey, dataPath);
             
 
             scriptPathKey = "EditorScriptPathKey";
@@ -77,7 +78,7 @@ namespace Framework.Editor
                     }
                     catch (Exception e)
                     {
-                        throw new Exception(fileInfos[i].Name + "\nError : " + e.Message);
+                        Debug.LogError(fileInfos[i].Name + "\nError : " + e.Message);
                     }
                 }
 
@@ -249,24 +250,24 @@ namespace Framework.Editor
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            dbPath = EditorGUILayout.TextField("Database Save Path", dbPath, GUILayout.Width(410));
+                            databasePath = EditorGUILayout.TextField("Database Save Path", databasePath, GUILayout.Width(410));
                             if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
                             {
-                                string path = dbPath.Substring(0, dbPath.LastIndexOf("/", StringComparison.Ordinal));
+                                string path = databasePath.Substring(0, databasePath.LastIndexOf("/", StringComparison.Ordinal));
                                 path = EditorUtility.SaveFilePanel("Database Save Path", path, "database", "db");
                                 if (!string.IsNullOrEmpty(path))
                                 {
                                     if (path.Contains(dataPath))
                                     {
-                                        dbPath = path.Replace(dataPath, "Assets");
+                                        databasePath = path.Replace(dataPath, "Assets");
                                     }
                                     else
                                     {
                                         Debug.LogWarning("Can not open the floder out of the project path!");
-                                        dbPath = path;
+                                        databasePath = path;
                                     }
 
-                                    EditorPrefs.SetString(dbPathKey, dbPath);
+                                    EditorPrefs.SetString(databasePathKey, databasePath);
                                 }
                             }
                         }
@@ -303,7 +304,42 @@ namespace Framework.Editor
 
                             if (GUILayout.Button("Create All"))
                             {
+                                try
+                                {
+                                    string dbpath = databasePath.Replace("Assets/", string.Empty);
+                                    SQLite3Creator.ClearAllTable(dbpath);
+                                    for (int i = 0; i < sheetLength; i++)
+                                    {
+                                        rowLength = tableData[i].Length;
+                                        for (int j = 0; j < rowLength; j++)
+                                        {
+                                            if (tableData[i][j].IsEnable)
+                                            {
+                                                progressValue = 1.0f;
+                                                if (tableData[i][j].IsNeedCreateScript) 
+                                                {
+                                                    progressValue = .5f;
+                                                    EditorUtility.DisplayProgressBar("Convert excel to cshap script...", "Convert excel named: " + tableData[i][j].TableName, i * progressValue / sheetLength);
+                                                    ScriptWriter.Writer(scriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]); 
+                                                }
+                                                EditorUtility.DisplayProgressBar("Convert excel to sqlite3 table...", "Convert excel named: " + tableData[i][j].TableName, i * .5f / sheetLength);
 
+                                                SQLite3Creator.Creator(ref tableData[i][j], dbpath);
+                                            }
+                                        }
+                                    }
+
+                                    EditorUtility.DisplayProgressBar("Refresh assetdatabase...", "Waiting convert finish...", 1);
+
+                                    AssetDatabase.Refresh();
+                                    EditorUtility.ClearProgressBar();
+
+                                    EditorUtility.DisplayDialog("Tips", "Convert excel to sqlite3 table finished.", "OK");
+                                }
+                                catch (Exception ex)
+                                {
+                                    EditorUtility.DisplayDialog("Error", "Convert excel to sqlite3 table has an error:" + ex.Message, "OK");
+                                }
                             }
 
                         }
@@ -365,8 +401,17 @@ namespace Framework.Editor
                                         GUILayout.Space(10);
                                         if (GUILayout.Button("Create", GUILayout.Width(490)))
                                         {
-                                            if (tableData[i][j].IsNeedCreateScript) ScriptWriter.Writer(scriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]);
-                                            SQLite3Creator.Creator(ref tableData[i][j], dbPath.Replace("Assets/", string.Empty));
+                                            try
+                                            {
+                                                if (tableData[i][j].IsNeedCreateScript) ScriptWriter.Writer(scriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]);
+                                                SQLite3Creator.Creator(ref tableData[i][j], databasePath.Replace("Assets/", string.Empty));
+                                            
+                                                EditorUtility.DisplayDialog("Tips", "Convert excel to sqlite3 table finished.", "OK");
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                EditorUtility.DisplayDialog("Error", "Convert excel to sqlite3 table has an error:" + ex.Message, "OK");
+                                            }
                                         }
                                     }
                                 }

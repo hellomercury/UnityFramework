@@ -2,21 +2,25 @@
 using System.Text;
 using NPOI.SS.UserModel;
 using Framework.SQLite3;
+using System.IO;
 
 namespace Framework.Editor
 {
     public class SQLite3Creator
     {
+
+        public static void ClearAllTable(string InDatabasePath)
+        {
+            string path = Application.dataPath + "/" + InDatabasePath;
+
+            if (File.Exists(path)) File.Delete(path);
+        }
+
         public static void Creator(ref TableData InTableData, string InDatabasePath)
         {
             string path = Application.dataPath + "/" + InDatabasePath;
-            Debug.LogError(path);
-            SQLite3Handle handle = new SQLite3Handle(path, SQLite3OpenFlags.Create | SQLite3OpenFlags.ReadWrite);
 
-            //if (InDatabasePath.Contains("dynamic.db"))
-            ////if (File.Exists(Application.persistentDataPath + "/dynamic.db"))
-            ////    File.Delete(Application.persistentDataPath + "/dynamic.db");
-            //PlayerPrefs.SetInt("DYNAMICDBUPDATED", 1);
+            SQLite3Handle handle = new SQLite3Handle(path, SQLite3OpenFlags.Create | SQLite3OpenFlags.ReadWrite);
 
             StringBuilder sb = new StringBuilder(512);
 
@@ -39,7 +43,6 @@ namespace Framework.Editor
             }
             sb.Remove(sb.Length - 2, 2);
             sb.Append(")");
-            Debug.LogError(sb.ToString());
             handle.Exec(sb.ToString());
 
             if (null != InTableData.ExcelContent)
@@ -154,7 +157,6 @@ namespace Framework.Editor
                     }
                     sb.Remove(sb.Length - 2, 2);
                     sb.Append(")");
-                    Debug.LogError(sb.ToString());
                     handle.Exec(sb.ToString());
                 }
             }

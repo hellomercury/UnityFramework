@@ -4,6 +4,7 @@ using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
+using UnityEngine;
 
 namespace Framework.Editor
 {
@@ -27,6 +28,7 @@ namespace Framework.Editor
                 using (FileStream stream = info.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     IWorkbook book;
+
                     if (info.Extension.Equals(".xlsx")) book = new XSSFWorkbook(stream);
                     else book = new HSSFWorkbook(stream);
 
@@ -57,6 +59,12 @@ namespace Framework.Editor
                                 data.Head[0] = new ICell[colCount];
                                 data.Head[1] = new ICell[colCount];
                                 data.Head[2] = row3 == null ? null : new ICell[colCount];
+
+                                if (!row1.GetCell(0).StringCellValue.Equals("ID"))
+                                {
+                                    Debug.LogWarning(data.SheetName + " Warning : The first column name must be 'ID' and the data has been automatically modified by the script!\nPlease fixed excel file.");
+                                    row1.GetCell(0).SetCellValue("ID");
+                                }
 
                                 for (int j = 0; j < colCount; ++j)
                                 {
@@ -91,15 +99,17 @@ namespace Framework.Editor
                             }
                             else EditorUtility.DisplayDialog("错误", info.Name + " 文档基本信息不匹配", "确定");
                         }
-                        else if(!(sheet.SheetName.Contains("Sheet") || sheet.SheetName.Contains("工作表")))
+                        else if (!(sheet.SheetName.Contains("Sheet") || sheet.SheetName.Contains("工作表")))
                             EditorUtility.DisplayDialog("错误", info.Name + " 文档基本信息不完整", "确定");
                     }
 
+                    book.Close();
                     stream.Close();
+
                     return datas.ToArray();
                 }
             }
-            else return null;
+            return null;
         }
     }
 }

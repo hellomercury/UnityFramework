@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NPOI.SS.UserModel;
-using UnityEngine;
+using UnityEditor;
 using UnityEngine.Assertions;
 
 namespace Framework.Editor
 {
     public class ScriptWriter
     {
-        public static void Writer(string InPath,ref TableData InTableData)
+        public static void Writer(string InPath, ref TableData InTableData)
         {
             Assert.IsFalse(string.IsNullOrEmpty(InPath));
 
@@ -44,7 +43,7 @@ namespace Framework.Editor
                 oldContent.Add("    //自定义代码.");
                 oldContent.Add("    //-------------------------------*Self Code End*   -------------------------------");
             }
-            
+
             string filename = InTableData.TableName;
             StringBuilder sb = new StringBuilder(1024);
             int length = InTableData.ColumnName.Length;
@@ -62,7 +61,8 @@ namespace Framework.Editor
                 .Append("    {\n");
             for (int i = 0; i < length; i++)
             {
-                sb.Append("        ").Append(InTableData.ColumnName[i]).Append(",\n");
+                if (InTableData.IsColumnEnable[i])
+                    sb.Append("        ").Append(InTableData.ColumnName[i]).Append(",\n");
             }
             sb.Append("        Max\n");
             sb.Append("    }\n\n");
@@ -73,17 +73,20 @@ namespace Framework.Editor
             sb.Append("        private readonly int hashCode;\n\n");
             for (int i = 0; i < length; i++)
             {
-                sb.Append("        [Sync((int)").Append(filename).Append("Enum.").Append(InTableData.ColumnName[i]).Append(")]\n")
+                if (InTableData.IsColumnEnable[i])
+                {
+                    sb.Append("        [Sync((int)").Append(filename).Append("Enum.").Append(InTableData.ColumnName[i]).Append(")]\n")
                     .Append("        public ")
                   .Append(InTableData.CSharpType[i])
                     .Append(" ")
                   .Append(InTableData.ColumnName[i])
                     .Append(0 == i ? " { get; private set; }" : " { get; set; }");
 
-                if (null == InTableData.ColumnDescribe || string.IsNullOrEmpty(InTableData.ColumnDescribe[i]))
-                    sb.Append("\n\n");
-                else
-                    sb.Append("  //").Append(InTableData.ColumnDescribe[i]).Append("\n\n");
+                    if (null == InTableData.ColumnDescribe || string.IsNullOrEmpty(InTableData.ColumnDescribe[i]))
+                        sb.Append("\n\n");
+                    else
+                        sb.Append("  //").Append(InTableData.ColumnDescribe[i]).Append("\n\n");
+                }
             }
 
             sb.Append("        public ").Append(filename).Append("()\n")
@@ -95,9 +98,10 @@ namespace Framework.Editor
             sb.Append("        public ").Append(filename).Append("(");
             for (int i = 0; i < length; ++i)
             {
-                sb.Append(InTableData.CSharpType[i])
-                  .Append(" In").Append(InTableData.ColumnName[i])
-                    .Append(", ");
+                if (InTableData.IsColumnEnable[i])
+                    sb.Append(InTableData.CSharpType[i])
+                        .Append(" In").Append(InTableData.ColumnName[i])
+                        .Append(", ");
             }
             sb.Remove(sb.Length - 2, 2);
             sb.Append(")\n");
@@ -106,9 +110,10 @@ namespace Framework.Editor
 
             for (int i = 0; i < length; ++i)
             {
-                sb.Append("            ").Append(InTableData.ColumnName[i])
-                  .Append(" = In").Append(InTableData.ColumnName[i])
-                    .Append(";\n");
+                if(InTableData.IsColumnEnable[i])
+                    sb.Append("            ").Append(InTableData.ColumnName[i])
+                        .Append(" = In").Append(InTableData.ColumnName[i])
+                        .Append(";\n");
             }
             sb.Append("        }\n\n");
 
@@ -130,8 +135,9 @@ namespace Framework.Editor
 
             for (int i = 1; i < length; ++i)
             {
-                sb.Append("+ \", ").Append(InTableData.ColumnName[i]).Append(" = \" + ").
-                  Append(InTableData.ColumnName[i]);
+                if(InTableData.IsColumnEnable[i])
+                    sb.Append("+ \", ").Append(InTableData.ColumnName[i]).Append(" = \" + ").
+                        Append(InTableData.ColumnName[i]);
             }
             sb.Append(";\n");
             sb.Append("        }\n\n");
@@ -146,11 +152,10 @@ namespace Framework.Editor
             sb.Append("    }\n");
 
 
-            if(!info.Directory.Exists) info.Directory.Create();
+            if (!info.Directory.Exists) info.Directory.Create();
             if (info.Exists) info.Delete();
 
             File.WriteAllText(InPath, sb.ToString(), Encoding.UTF8);
         }
     }
 }
-
