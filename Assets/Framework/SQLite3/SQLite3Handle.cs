@@ -154,7 +154,7 @@ namespace Framework.SQLite3
             return SelectT<T>("WHERE rowid = " + (InIndex + 1));
         }
 
-        
+
         public T SelectTByKeyValue<T, U>(U InKey, SQLite3Operator InOperator, object InValue) where T : Base, new()
         {
             Assert.IsNotNull(InValue);
@@ -162,7 +162,7 @@ namespace Framework.SQLite3
             string key;
             if (InKey is Enum) key = InKey.ToString();
             else if (InKey is string) key = InKey as string;
-            else key = Base.GetPropertyInfos(typeof(T)).Infos[InKey.GetHashCode()].Name;
+            else key = SyncFactory.GetSyncProperty(typeof(T)).Infos[InKey.GetHashCode()].Name;
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append(" WHERE ")
@@ -181,7 +181,7 @@ namespace Framework.SQLite3
 
             T t = null;
 
-            ClassProperty property = Base.GetPropertyInfos(typeof(T));
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             SQLite3Statement stmt;
 
@@ -196,11 +196,8 @@ namespace Framework.SQLite3
                 if (SQLite3Result.Row == SQLite3.Step(stmt))
                 {
                     int count = SQLite3.ColumnCount(stmt);
-                    int length = property.Infos.Length;
 
-                    Assert.IsTrue(count == length, property.ClassName + " : 数据库列与类属性个数不一致！");
-
-                    t = GetT(new T(), property.Infos, stmt, length);
+                    t = GetT(new T(), property.Infos, stmt, property.InfosLength);
                 }
             }
             else
@@ -220,7 +217,8 @@ namespace Framework.SQLite3
         {
             Assert.IsFalse(SQLite3DbHandle.Zero == handle);
             Dictionary<int, T> value = null;
-            ClassProperty property = Base.GetPropertyInfos(typeof(T));
+
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("SELECT * FROM ")
@@ -273,8 +271,8 @@ namespace Framework.SQLite3
         {
             string key;
             if (InKey is string) key = InKey as string;
-            else if(InKey is Enum) key = InKey.ToString();
-            else key = Base.GetPropertyInfos(typeof(T)).Infos[InKey.GetHashCode()].Name;
+            else if (InKey is Enum) key = InKey.ToString();
+            else key = SyncFactory.GetSyncProperty(typeof(T)).Infos[InKey.GetHashCode()].Name;
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append(" WHERE ")
@@ -293,7 +291,7 @@ namespace Framework.SQLite3
             Assert.IsFalse(SQLite3DbHandle.Zero == handle);
 
             List<T> value = null;
-            ClassProperty property = Base.GetPropertyInfos(typeof(T));
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("SELECT * FROM ")
@@ -389,18 +387,18 @@ namespace Framework.SQLite3
 
         public void CreateTable<T>() where T : Base
         {
-            ClassProperty classProperty = Base.GetPropertyInfos(typeof(T));
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
-            Exec("DROP TABLE IF EXISTS " + classProperty.ClassName);
+            Exec("DROP TABLE IF EXISTS " + property.ClassName);
             stringBuilder.Remove(0, stringBuilder.Length);
-            stringBuilder.Append("CREATE TABLE ").Append(classProperty.ClassName).Append("(");
-            int length = classProperty.Infos.Length;
+            stringBuilder.Append("CREATE TABLE ").Append(property.ClassName).Append("(");
+            int length = property.Infos.Length;
             for (int i = 0; i < length; ++i)
             {
-                stringBuilder.Append(classProperty.Infos[i].Name);
+                stringBuilder.Append(property.Infos[i].Name);
 
-                PropertyInfo info = classProperty.Infos[i];
-                Type type = classProperty.Infos[i].PropertyType;
+                PropertyInfo info = property.Infos[i];
+                Type type = property.Infos[i].PropertyType;
 
                 if (info.PropertyType == typeof(int) || info.PropertyType == typeof(long))
                 {
@@ -419,7 +417,7 @@ namespace Framework.SQLite3
                     stringBuilder.Append(" BLOB ");
                 }
 
-                object[] objs = classProperty.Infos[i].GetCustomAttributes(typeof(ConstraintAttribute), false);
+                object[] objs = property.Infos[i].GetCustomAttributes(typeof(ConstraintAttribute), false);
                 if (objs.Length == 1 && objs[0] is ConstraintAttribute)
                     stringBuilder.Append((objs[0] as ConstraintAttribute).Constraint);
                 stringBuilder.Append(", ");
@@ -451,7 +449,7 @@ namespace Framework.SQLite3
 
         public void InsertT<T>(T InValue) where T : Base
         {
-            ClassProperty property = InValue.ClassPropertyInfos;
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("INSERT INTO ").Append(property.ClassName).Append(" VALUES(");
@@ -474,8 +472,8 @@ namespace Framework.SQLite3
             int count = InValue.Count;
             if (count > 0)
             {
-                ClassProperty property = InValue[0].ClassPropertyInfos;
-                
+                SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+
                 for (int i = 0; i < count; ++i)
                 {
                     stringBuilder.Remove(0, stringBuilder.Length);
@@ -514,7 +512,7 @@ namespace Framework.SQLite3
 
         public void UpdateT<T>(T InValue) where T : Base
         {
-            ClassProperty property = InValue.ClassPropertyInfos;
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("UPDATE ").Append(property.ClassName).Append(" SET ");
@@ -535,7 +533,7 @@ namespace Framework.SQLite3
 
         public void UpdateTByKeyValue<T>(int InIndex, T InValue) where T : Base
         {
-            ClassProperty property = InValue.ClassPropertyInfos;
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("UPDATE ")
@@ -552,8 +550,8 @@ namespace Framework.SQLite3
 
         public void UpdateOrInsert<T>(T InT) where T : Base
         {
-            ClassProperty property = InT.ClassPropertyInfos;
-            
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+
             SQLite3Statement stmt;
 
             stringBuilder.Remove(0, stringBuilder.Length);
@@ -579,7 +577,7 @@ namespace Framework.SQLite3
             }
             SQLite3.Finalize(stmt);
 
-            if(isUpdate) UpdateT(InT);
+            if (isUpdate) UpdateT(InT);
             else InsertT(InT);
         }
 
@@ -598,7 +596,7 @@ namespace Framework.SQLite3
 
         public void DeleteT<T>(T InID) where T : Base
         {
-            ClassProperty property = Base.GetPropertyInfos(typeof (T));
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("DELETE FROM ")
@@ -613,7 +611,7 @@ namespace Framework.SQLite3
 
         public void DeleteAllT<T>() where T : Base
         {
-            ClassProperty property = Base.GetPropertyInfos(typeof(T));
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("DELETE FROM ")

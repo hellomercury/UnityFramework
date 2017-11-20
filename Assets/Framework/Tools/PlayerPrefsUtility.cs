@@ -42,26 +42,26 @@ namespace Framework.Tools
 
         public static void SetT<T>(T InT) where T : Base
         {
-            sb.Remove(0, sb.Length);
-            ClassProperty property = InT.ClassPropertyInfos;
-            for (int i = 0; i < property.Infos.Length; i++)
-            {
-                if (property.Infos[i].PropertyType.IsArray)
-                    sb.Append(Utility.ChangeArrayToString((Array)property.Infos[i].GetValue(InT, null))).Append("|");
-                else
-                    sb.Append(property.Infos[i].GetValue(InT, null)).Append("|");
-            }
-            sb.Remove(sb.Length - 1, 1);
-            Debug.LogError(sb);
-            SetString(property.ClassName, sb.ToString());
+            //sb.Remove(0, sb.Length);
+            //ClassProperty property = InT.ClassPropertyInfos;
+            //for (int i = 0; i < property.Infos.Length; i++)
+            //{
+            //    if (property.Infos[i].PropertyType.IsArray)
+            //        sb.Append(Utility.ChangeArrayToString((Array)property.Infos[i].GetValue(InT, null))).Append("|");
+            //    else
+            //        sb.Append(property.Infos[i].GetValue(InT, null)).Append("|");
+            //}
+            //sb.Remove(sb.Length - 1, 1);
+            //Debug.LogError(sb);
+            //SetString(property.ClassName, sb.ToString());
         }
 
         public static T GetT<T>() where T : Base, new()
         {
-            ClassProperty property = Base.GetPropertyInfos(typeof(T));
-            temp = GetString(property.ClassName);
+            //ClassProperty property = Base.GetPropertyInfos(typeof(T));
+            //temp = GetString(property.ClassName);
 
-            if (string.IsNullOrEmpty(temp)) return default(T);
+            //if (string.IsNullOrEmpty(temp)) return default(T);
 
             T t = new T();
             t.OnSyncAll(InObject: temp.Split('|'));

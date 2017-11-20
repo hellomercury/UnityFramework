@@ -19,7 +19,8 @@ namespace Framework.Editor.Tools
             }
             else
             {
-                SystemProcess.Start(@"/Applications/Visual Studio.app", path + projectName + ".sln");
+                SystemProcess.Start(@"/Applications/Visual Studio.app", path + "/Assembly-CSharp.sln");
+                SystemProcess.Start(@"/Applications/Visual Studio.app", path + "/Assembly-CSharp-Editor.sln");
             } 
         }
 
