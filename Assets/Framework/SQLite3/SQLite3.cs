@@ -33,9 +33,6 @@ namespace Framework.SQLite3
         [DllImport("sqlite3", EntryPoint = "sqlite3_column_type", CallingConvention = CallingConvention.Cdecl)]
         public static extern SQLite3DataType ColumnType(IntPtr stmt, int index);
 
-        //[DllImport("sqlite3", EntryPoint = "sqlite3_column_name", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern IntPtr ColumnName(Sqlite3Statement stmt, int index);
-
         [DllImport("sqlite3", EntryPoint = "sqlite3_column_name16", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr ColumnName16Internal(IntPtr stmt, int index);
         public static string ColumnName(IntPtr stmt, int index)

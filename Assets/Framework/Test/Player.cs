@@ -14,11 +14,11 @@ public enum PlayerEnum
 }
 public class Player : Base
 {
-    [Constraint(SQLite3Constraint.PrimaryKey | SQLite3Constraint.AutoIncrement)]
+    [SQLite3Constraint(SQLite3Constraint.PrimaryKey | SQLite3Constraint.AutoIncrement)]
     [Sync((int)PlayerEnum.ID)]
     public int ID { get; private set; }
 
-    [Constraint(SQLite3Constraint.NotNull)]
+    [SQLite3Constraint(SQLite3Constraint.NotNull)]
     [Sync((int)PlayerEnum.Name)]
     public string Name { get; private set; }
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using Framework.Tools;
-using UnityEngine;
 
 namespace Framework.SQLite3
 {
@@ -128,38 +126,5 @@ namespace Framework.SQLite3
         Text = 3,
         Blob = 4,
         Null = 5
-    }
-
-    [Flags]
-    public enum SQLite3Operator
-    {
-        Equal,
-        NotEqual,
-        Greater,
-        GreaterOrEqual,
-        Less,
-        LessOrEqual,
-        Between,
-        Max
-    }
-
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ConstraintAttribute : Attribute
-    {
-        private string constraint;
-        public string Constraint { get { return constraint; } }
-
-        public ConstraintAttribute(SQLite3Constraint InConstraint)
-        {
-            constraint = string.Empty;
-            if((InConstraint & SQLite3Constraint.PrimaryKey) == SQLite3Constraint.PrimaryKey)
-                constraint += "PRIMARY KEY ";
-            if((InConstraint & SQLite3Constraint.AutoIncrement) == SQLite3Constraint.AutoIncrement)
-                constraint += "AUTOINCREMENT ";
-            if((InConstraint & SQLite3Constraint.Unique) == SQLite3Constraint.Unique)
-                constraint += "UNIQUE ";
-            if((InConstraint & SQLite3Constraint.NotNull) == SQLite3Constraint.NotNull)
-                constraint += "NOT NULL ";
-        }
     }
 }

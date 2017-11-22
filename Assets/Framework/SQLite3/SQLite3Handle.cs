@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Assertions;
 using SQLite3DbHandle = System.IntPtr;
@@ -14,7 +13,6 @@ namespace Framework.SQLite3
 {
     public class SQLite3Handle
     {
-        //public SQLite3DbHandle DatabaseHandle { get { return handle; } }
         private SQLite3DbHandle handle;
 
         private StringBuilder stringBuilder;
@@ -107,9 +105,9 @@ namespace Framework.SQLite3
                     stringBuilder.Append(" BLOB ");
                 }
 
-                object[] objs = property.Infos[i].GetCustomAttributes(typeof(ConstraintAttribute), false);
-                if (objs.Length == 1 && objs[0] is ConstraintAttribute)
-                    stringBuilder.Append((objs[0] as ConstraintAttribute).Constraint);
+                object[] objs = property.Infos[i].GetCustomAttributes(typeof(SQLite3ConstraintAttribute), false);
+                if (objs.Length == 1 && objs[0] is SQLite3ConstraintAttribute)
+                    stringBuilder.Append((objs[0] as SQLite3ConstraintAttribute).Constraint);
 
                 stringBuilder.Append(", ");
             }
@@ -388,10 +386,10 @@ namespace Framework.SQLite3
             obj = new List<object[]>();
             int count = SQLite3.ColumnCount(stmt);
 
-            do
+            while (SQLite3Result.Row == SQLite3.Step(stmt))
             {
                 obj.Add(GetObjects(stmt, count));
-            } while (SQLite3Result.Row == SQLite3.Step(stmt));
+            }
 
             SQLite3.Finalize(stmt);
 
@@ -466,9 +464,9 @@ namespace Framework.SQLite3
         /// </summary>
         /// <returns>Base subclass object.</returns>
         /// <param name="InPropertyIndex">In property index, The index value is specified by the SyncAttribute.</param>
-        /// <param name="InPropertyValue">In property value.</param>
+        /// <param name="InExpectedValue">Expected values.</param>
         /// <typeparam name="T">Subclass of Base.</typeparam>
-        public T SelectTByKeyValue<T>(int InPropertyIndex, object InPropertyValue) where T : Base, new()
+        public T SelectTByKeyValue<T>(int InPropertyIndex, object InExpectedValue) where T : Base, new()
         {
             SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
             if (InPropertyIndex < 0 || InPropertyIndex >= property.InfosLength) throw new IndexOutOfRangeException();
@@ -479,7 +477,7 @@ namespace Framework.SQLite3
                          .Append(" WHERE ")
                          .Append(property.Infos[InPropertyIndex])
                          .Append(" = ")
-                         .Append(InPropertyValue);
+                         .Append(InExpectedValue);
 
             return SelectT<T>(stringBuilder.ToString());
         }
@@ -489,9 +487,9 @@ namespace Framework.SQLite3
         /// </summary>
         /// <returns>Base subclass object.</returns>
         /// <param name="InPropertyName">In property name.</param>
-        /// <param name="InPropertyValue">In property value.</param>
+        /// <param name="InExpectedValue">Expected values.</param>
         /// <typeparam name="T">Subclass of Base.</typeparam>
-        public T SelectTByKeyValue<T>(string InPropertyName, object InPropertyValue) where T : Base, new()
+        public T SelectTByKeyValue<T>(string InPropertyName, object InExpectedValue) where T : Base, new()
         {
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("SELECT * FROM ")
@@ -499,7 +497,7 @@ namespace Framework.SQLite3
                          .Append(" WHERE ")
                          .Append(InPropertyName)
                          .Append(" = ")
-                         .Append(InPropertyValue);
+                         .Append(InExpectedValue);
 
             return SelectT<T>(stringBuilder.ToString());
         }
@@ -516,8 +514,6 @@ namespace Framework.SQLite3
             T t = default(T);
             SQLite3Statement stmt = ExecuteQuery(InSQLStatement);
 
-            //int count = SQLite3.ColumnCount(stmt);
-
             t = GetT(new T(), property.Infos, stmt, property.InfosLength);
 
             SQLite3.Finalize(stmt);
@@ -525,169 +521,266 @@ namespace Framework.SQLite3
             return t;
         }
 
-        public Dictionary<int, T> SelectDictT<T>(string InCommand = "") where T : Base, new()
+        /// <summary>
+        /// Query the database by property indexes and expected value and return the dictionary.
+        /// </summary>
+        /// <returns>Returns the result of the query as a dictionary.</returns>
+        /// <param name="InIndexes">property indexes, The index value is specified by the SyncAttribute.</param>
+        /// <param name="InOperators">Operators between properties and expected values.</param>
+        /// <param name="InExpectedValues">Expected values.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public Dictionary<int, T> SelectDictT<T>(int[] InIndexes, string[] InOperators, int[] InExpectedValues) where T : Base, new()
+        {
+            if (null == InIndexes || null == InOperators || null == InExpectedValues) throw new ArgumentNullException();
+            int length = InIndexes.Length;
+            if (length != InOperators.Length || length != InExpectedValues.Length) throw new ArgumentException("Parameter length does not match.");
+
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+            stringBuilder.Remove(0, stringBuilder.Length);
+            stringBuilder.Append("SELECT * FROM ")
+                         .Append(property.ClassName)
+                         .Append(" WHERE ");
+
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilder.Append(property.Infos[InIndexes[i]].Name)
+                             .Append(" ")
+                             .Append(InOperators[i])
+                             .Append(" ")
+                             .Append(InExpectedValues[i])
+                             .Append(" AND ");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 5, 5);
+
+            return SelectDictT<T>(stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Query the database by property names and expected value and return the dictionary.
+        /// </summary>
+        /// <returns>Returns the result of the query as a dictionary.</returns>
+        /// <param name="InPropertyNames">property names.</param>
+        /// <param name="InOperators">Operators between properties and expected values.</param>
+        /// <param name="InExpectedValues">Expected values.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public Dictionary<int, T> SelectDictT<T>(string[] InPropertyNames, string[] InOperators, int[] InExpectedValues) where T : Base, new()
+        {
+            if (null == InPropertyNames || null == InOperators || null == InExpectedValues) throw new ArgumentNullException();
+            int length = InPropertyNames.Length;
+            if (length != InOperators.Length || length != InExpectedValues.Length) throw new ArgumentException("Parameter length does not match.");
+
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+            stringBuilder.Remove(0, stringBuilder.Length);
+            stringBuilder.Append("SELECT * FROM ")
+                         .Append(property.ClassName)
+                         .Append(" WHERE ");
+
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilder.Append(InPropertyNames[i])
+                             .Append(" ")
+                             .Append(InOperators[i])
+                             .Append(" ")
+                             .Append(InExpectedValues[i])
+                             .Append(" AND ");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 5, 5);
+
+            return SelectDictT<T>(stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Query the dictionary from the database by sql statement.
+        /// </summary>
+        /// <returns>Returns the result of the query as a dictionary.</returns>
+        /// <param name="InSQLStatement">In SQL Statement</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public Dictionary<int, T> SelectDictT<T>(string InSQLStatement = "") where T : Base, new()
         {
             Assert.IsFalse(SQLite3DbHandle.Zero == handle);
-            Dictionary<int, T> value = null;
+            Dictionary<int, T> resultDict = null;
 
             SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
 
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("SELECT * FROM ")
                 .Append(property.ClassName)
-                .Append(InCommand);
+                .Append(InSQLStatement);
 
-            SQLite3Statement stmt;
-            if (SQLite3Result.OK == SQLite3.Prepare2(handle, stringBuilder.ToString(), stringBuilder.Length, out stmt, IntPtr.Zero))
+            SQLite3Statement stmt = ExecuteQuery(stringBuilder.ToString());
+            int count = SQLite3.ColumnCount(stmt);
+            int length = property.Infos.Length;
+            int id;
+            resultDict = new Dictionary<int, T>();
+            SQLite3Result result;
+            while (true)
             {
-                int count = SQLite3.ColumnCount(stmt);
-                int length = property.Infos.Length;
-
-                Assert.IsTrue(count == length, property.ClassName + " : 数据库列与类属性个数不一致！");
-                value = new Dictionary<int, T>();
-                SQLite3Result result;
-                while (true)
+                result = SQLite3.Step(stmt);
+                if (SQLite3Result.Row == result)
                 {
-                    result = SQLite3.Step(stmt);
-                    if (SQLite3Result.Row == result)
-                    {
-                        T t = GetT(new T(), property.Infos, stmt, count);
-
-                        value.Add((int)property.Infos[0].GetValue(t, null), t);
-                    }
-                    else if (SQLite3Result.Done == result)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Debug.LogError(SQLite3.GetErrmsg(stmt));
-                        break;
-                    }
+                    T t = GetT(new T(), property.Infos, stmt, count);
+                    id = (int)property.Infos[0].GetValue(t, null);
+                    if (!resultDict.ContainsKey(id)) resultDict.Add(id, t);
+                }
+                else if (SQLite3Result.Done == result)
+                {
+                    break;
+                }
+                else
+                {
+                    throw new Exception(SQLite3.GetErrmsg(stmt));
                 }
             }
-            else
-            {
-                stringBuilder.Append("\nError : ")
-                    .Append(SQLite3.GetErrmsg(handle));
-
-                Debug.LogError(stringBuilder.ToString());
-            }
-
             SQLite3.Finalize(stmt);
 
-            return value;
+            return resultDict;
         }
 
-        public List<T> SelectListT<T, U>(U InKey, SQLite3Operator InOperator, params int[] InValue) where T : Base, new()
+        /// <summary>
+        /// Query the array by property indexes and expected value and return the dictionary.
+        /// </summary>
+        /// <returns>Returns the result of the query as a array.</returns>
+        /// <param name="InIndexes">property indexes, The index value is specified by the SyncAttribute.</param>
+        /// <param name="InOperators">Operators between properties and expected values.</param>
+        /// <param name="InExpectedValues">Expected values.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public T[] SelectArrayT<T>(int[] InIndexes, string[] InOperators, int[] InExpectedValues) where T : Base, new()
         {
-            string key;
-            if (InKey is string) key = InKey as string;
-            else if (InKey is Enum) key = InKey.ToString();
-            else key = SyncFactory.GetSyncProperty(typeof(T)).Infos[InKey.GetHashCode()].Name;
+            if (null == InIndexes || null == InOperators || null == InExpectedValues) throw new ArgumentNullException();
+            int length = InIndexes.Length;
+            if (length != InOperators.Length || length != InExpectedValues.Length) throw new ArgumentException("Parameter length does not match.");
 
-            stringBuilder.Remove(0, stringBuilder.Length);
-            stringBuilder.Append(" WHERE ")
-                .Append(key)
-                .Append(GetOperatorString(InOperator));
-
-            if (InValue.Length == 1) stringBuilder.Append(InValue[0]);
-            else if (InValue.Length == 2) stringBuilder.Append(InValue[0]).Append(" AND ").Append(InValue[1]);
-            else Debug.LogError("参数过多！");
-
-            return SelectListT<T>(stringBuilder.ToString());
-        }
-
-        public List<T> SelectListT<T>(string InCondition = "") where T : Base, new()
-        {
-            Assert.IsFalse(SQLite3DbHandle.Zero == handle);
-
-            List<T> value = null;
             SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
-
             stringBuilder.Remove(0, stringBuilder.Length);
             stringBuilder.Append("SELECT * FROM ")
-                .Append(property.ClassName)
-                .Append(" ")
-                .Append(InCondition);
+                         .Append(property.ClassName)
+                         .Append(" WHERE ");
 
-            SQLite3Statement stmt;
-            if (SQLite3Result.OK == SQLite3.Prepare2(handle, stringBuilder.ToString(), stringBuilder.Length, out stmt, IntPtr.Zero))
+            for (int i = 0; i < length; i++)
             {
-                int count = SQLite3.ColumnCount(stmt);
-                int length = property.Infos.Length;
-
-                Assert.IsTrue(count == length, property.ClassName + " : 数据库列与类属性个数不一致！");
-                value = new List<T>();
-                SQLite3Result result;
-                while (true)
-                {
-                    result = SQLite3.Step(stmt);
-                    if (SQLite3Result.Row == result)
-                    {
-                        value.Add(GetT(new T(), property.Infos, stmt, count));
-                    }
-                    else if (SQLite3Result.Done == result)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Debug.LogError(SQLite3.GetErrmsg(stmt));
-                        break;
-                    }
-                }
+                stringBuilder.Append(property.Infos[InIndexes[i]].Name)
+                             .Append(" ")
+                             .Append(InOperators[i])
+                             .Append(" ")
+                             .Append(InExpectedValues[i])
+                             .Append(" AND ");
             }
-            else
-            {
-                stringBuilder.Append("\nError : ").Append(SQLite3.GetErrmsg(handle));
+            stringBuilder.Remove(stringBuilder.Length - 5, 5);
 
-                Debug.LogError(stringBuilder.ToString());
+            return SelectArrayT<T>(stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Query the database by property names and expected value and return the array.
+        /// </summary>
+        /// <returns>Returns the result of the query as a dictionary.</returns>
+        /// <param name="InPropertyNames">property names.</param>
+        /// <param name="InOperators">Operators between properties and expected values.</param>
+        /// <param name="InExpectedValues">Expected values.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public T[] SelectArrayT<T>(string[] InPropertyNames, string[] InOperators, int[] InExpectedValues) where T : Base, new()
+        {
+            if (null == InPropertyNames || null == InOperators || null == InExpectedValues) throw new ArgumentNullException();
+            int length = InPropertyNames.Length;
+            if (length != InOperators.Length || length != InExpectedValues.Length) throw new ArgumentException("Parameter length does not match.");
+
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+            stringBuilder.Remove(0, stringBuilder.Length);
+            stringBuilder.Append("SELECT * FROM ")
+                         .Append(property.ClassName)
+                         .Append(" WHERE ");
+
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilder.Append(InPropertyNames[i])
+                             .Append(" ")
+                             .Append(InOperators[i])
+                             .Append(" ")
+                             .Append(InExpectedValues[i])
+                             .Append(" AND ");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 5, 5);
+
+            return SelectArrayT<T>(stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Query the database by sql statement and return the array.
+        /// </summary>
+        /// <returns>Returns the result of the query as a array.</returns>
+        /// <param name="InSQLStatement">In SQL Statement.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        public T[] SelectArrayT<T>(string InSQLStatement = "") where T : Base, new()
+        {
+            SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
+
+            SQLite3Statement stmt = ExecuteQuery(InSQLStatement);
+
+            List<T> resultList = new List<T>();
+            SQLite3Result sqlite3Result;
+            int count = SQLite3.ColumnCount(stmt);
+            while (true)
+            {
+                sqlite3Result = SQLite3.Step(stmt);
+                if (SQLite3Result.Row == sqlite3Result)
+                {
+                    resultList.Add(GetT(new T(), property.Infos, stmt, count));
+                }
+                else if (SQLite3Result.Done == sqlite3Result) break;
+                else throw new Exception(SQLite3.GetErrmsg(stmt));
             }
 
             SQLite3.Finalize(stmt);
 
-            return value;
+            return resultList.ToArray();
         }
 
-        private T GetT<T>(T InValue, PropertyInfo[] InInfos, SQLite3Statement InStmt, int InCount) where T : Base, new()
+        /// <summary>
+        /// Convert query result from database to Base subclass object.
+        /// </summary>
+        /// <returns>Base subclass object.</returns>
+        /// <param name="InBaseSubclassObj">In Base subclass object.</param>
+        /// <param name="InPropertyInfos">In Base subclass property infos.</param>
+        /// <param name="InStmt">SQLite3 result address.</param>
+        /// <param name="InCount">In sqlite3 result count.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
+        private T GetT<T>(T InBaseSubclassObj, PropertyInfo[] InPropertyInfos, SQLite3Statement InStmt, int InCount) where T : Base, new()
         {
             Type type;
             for (int i = 0; i < InCount; ++i)
             {
-                type = InInfos[i].PropertyType;
+                type = InPropertyInfos[i].PropertyType;
 
                 if (typeof(int) == type)
                 {
-                    InInfos[i].SetValue(InValue, SQLite3.ColumnInt(InStmt, i), null);
+                    InPropertyInfos[i].SetValue(InBaseSubclassObj, SQLite3.ColumnInt(InStmt, i), null);
                 }
                 else if (typeof(long) == type)
                 {
-                    InInfos[i].SetValue(InValue, SQLite3.ColumnInt64(InStmt, i), null);
+                    InPropertyInfos[i].SetValue(InBaseSubclassObj, SQLite3.ColumnInt64(InStmt, i), null);
                 }
                 else if (typeof(float) == type)
                 {
-                    InInfos[i].SetValue(InValue, (float)SQLite3.ColumnDouble(InStmt, i), null);
+                    InPropertyInfos[i].SetValue(InBaseSubclassObj, (float)SQLite3.ColumnDouble(InStmt, i), null);
                 }
                 else if (typeof(double) == type)
                 {
-                    InInfos[i].SetValue(InValue, SQLite3.ColumnDouble(InStmt, i), null);
+                    InPropertyInfos[i].SetValue(InBaseSubclassObj, SQLite3.ColumnDouble(InStmt, i), null);
                 }
                 else if (typeof(string) == type)
                 {
-                    InInfos[i].SetValue(InValue, SQLite3.ColumnText(InStmt, i), null);
+                    InPropertyInfos[i].SetValue(InBaseSubclassObj, SQLite3.ColumnText(InStmt, i), null);
                 }
             }
 
-            return InValue;
+            return InBaseSubclassObj;
         }
 
-
-
-
-
-
-
+        /// <summary>
+        /// Deletes the data by identifier.
+        /// </summary>
+        /// <param name="InTableName">In table name.</param>
+        /// <param name="InID">In identifier of data.</param>
         public void DeleteByID(string InTableName, int InID)
         {
             stringBuilder.Remove(0, stringBuilder.Length);
@@ -698,9 +791,14 @@ namespace Framework.SQLite3
 
             Exec(stringBuilder.ToString());
 
-            Exec("VACUUM");    //重建内置索引值
+            Exec("VACUUM");    //rebuild the built-in index.
         }
 
+        /// <summary>
+        /// Deletes the data by Base subclass object.
+        /// </summary>
+        /// <param name="InID">In Subclass object id.</param>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
         public void DeleteT<T>(T InID) where T : Base
         {
             SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
@@ -713,9 +811,13 @@ namespace Framework.SQLite3
 
             Exec(stringBuilder.ToString());
 
-            Exec("VACUUM");    //重建内置索引值 
+            Exec("VACUUM");    //rebuild the built-in index.
         }
 
+        /// <summary>
+        /// Clear table data by Base of subclass.
+        /// </summary>
+        /// <typeparam name="T">Subclass of Base.</typeparam>
         public void DeleteAllT<T>() where T : Base
         {
             SyncProperty property = SyncFactory.GetSyncProperty(typeof(T));
@@ -726,24 +828,33 @@ namespace Framework.SQLite3
 
             Exec(stringBuilder.ToString());
 
-            Exec("VACUUM");    //重建内置索引值 
+            Exec("VACUUM");    //rebuild the built-in index.
         }
 
-        private SQLite3Statement ExecuteQuery(string InCommand)
+        /// <summary>
+        /// Executed the SQL statement and return the address of sqlite3.
+        /// </summary>
+        /// <returns>the address of sqlite3.</returns>
+        /// <param name="InSQLStatement">In sql statement.</param>
+        private SQLite3Statement ExecuteQuery(string InSQLStatement)
         {
             SQLite3Statement stmt;
 
-            if (SQLite3Result.OK == SQLite3.Prepare2(handle, InCommand, GetUTF8ByteCount(InCommand), out stmt, IntPtr.Zero))
-                if (SQLite3Result.Row == SQLite3.Step(stmt)) return stmt;
-
+            if (SQLite3Result.OK == SQLite3.Prepare2(handle, InSQLStatement, GetUTF8ByteCount(InSQLStatement), out stmt, IntPtr.Zero))
+                return stmt;
             throw new Exception(SQLite3.GetErrmsg(stmt));
         }
 
-        public void Exec(string InCommand)
+        /// <summary>
+        /// Executed the SQL statement.
+        /// </summary>
+        /// <returns>The exec.</returns>
+        /// <param name="InSQLStatement">In SQL Statement.</param>
+        public void Exec(string InSQLStatement)
         {
             SQLite3Statement stmt;
 
-            if (SQLite3Result.OK == SQLite3.Prepare2(handle, InCommand, GetUTF8ByteCount(InCommand), out stmt, IntPtr.Zero))
+            if (SQLite3Result.OK == SQLite3.Prepare2(handle, InSQLStatement, GetUTF8ByteCount(InSQLStatement), out stmt, IntPtr.Zero))
             {
                 if (SQLite3Result.Done != SQLite3.Step(stmt)) throw new Exception(SQLite3.GetErrmsg(stmt));
             }
@@ -752,6 +863,9 @@ namespace Framework.SQLite3
             SQLite3.Finalize(stmt);
         }
 
+        /// <summary>
+        /// Closes the database.
+        /// </summary>
         public void CloseDB()
         {
             if (SQLite3DbHandle.Zero != handle)
@@ -767,59 +881,28 @@ namespace Framework.SQLite3
             }
         }
 
-
-        private int GetUTF8ByteCount(string InSql)
+        /// <summary>
+        /// get utf8 bytes length of string.
+        /// </summary>
+        /// <returns>The UTF 8 bytes count.</returns>
+        /// <param name="InStr">In original string.</param>
+        private int GetUTF8ByteCount(string InStr)
         {
-            return Encoding.UTF8.GetByteCount(InSql);
+            return Encoding.UTF8.GetByteCount(InStr);
         }
 
-        private byte[] ConvertStringToUTF8Bytes(string InContent)
+        /// <summary>
+        /// Converts the string to UTF 8 bytes.
+        /// </summary>
+        /// <returns>The string to UTF 8 bytes.</returns>
+        /// <param name="InStr">In string.</param>
+        private byte[] ConvertStringToUTF8Bytes(string InStr)
         {
-            int length = Encoding.UTF8.GetByteCount(InContent);
+            int length = Encoding.UTF8.GetByteCount(InStr);
             byte[] bytes = new byte[length + 1];
-            Encoding.UTF8.GetBytes(InContent, 0, InContent.Length, bytes, 0);
+            Encoding.UTF8.GetBytes(InStr, 0, InStr.Length, bytes, 0);
 
             return bytes;
-        }
-
-        private string ConvertStringToUTF8String(string InContent)
-        {
-            return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(InContent));
-        }
-
-        private string GetOperatorString(SQLite3Operator InOperator)
-        {
-            switch (InOperator)
-            {
-                case SQLite3Operator.Equal:
-                    return " = ";
-
-                case SQLite3Operator.NotEqual:
-                    return " != ";
-
-                case SQLite3Operator.Greater:
-                    return " > ";
-
-                case SQLite3Operator.GreaterOrEqual:
-                    return " >= ";
-
-                case SQLite3Operator.Less:
-                    return " < ";
-
-                case SQLite3Operator.LessOrEqual:
-                    return " <= ";
-
-                case SQLite3Operator.Between:
-                    return " BETWEEN ";
-
-                default:
-                    return string.Empty;
-            }
-        }
-
-        public static bool HasChinese(string str)
-        {
-            return Regex.IsMatch(str, @"[\u4e00-\u9fa5]");
         }
     }
 }
