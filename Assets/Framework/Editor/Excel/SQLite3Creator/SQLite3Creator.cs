@@ -9,7 +9,7 @@ namespace Framework.Editor
     public class SQLite3Creator
     {
 
-        public static void ClearAllTable(string InDatabasePath)
+        public static void DeleteDatabase(string InDatabasePath)
         {
             string path = Application.dataPath + "/" + InDatabasePath;
 

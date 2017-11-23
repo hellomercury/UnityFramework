@@ -49,6 +49,12 @@ namespace Framework.Editor
             scriptPath = EditorPrefs.GetString(scriptPathKey, dataPath);
         }
 
+        private void OnDisable()
+        {
+            AssetDatabase.Refresh();
+            AssetDatabase.SaveAssets();
+        }
+
         public void LoadExcel(string InExcelPath)
         {
             ExcelReader.ExcelData[] excelData = ExcelReader.GetSingleExcelData(InExcelPath);
@@ -253,12 +259,13 @@ namespace Framework.Editor
                             if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
                             {
                                 string path = databasePath.Substring(0, databasePath.LastIndexOf("/", StringComparison.Ordinal));
-                                path = EditorUtility.SaveFilePanel("Database Save Path", path, "database", "db");
+                                path = EditorUtility.SaveFilePanel("Database Save Path", path, "Database", "db");
                                 if (!string.IsNullOrEmpty(path))
                                 {
                                     if (path.Contains(dataPath))
                                     {
                                         databasePath = path.Replace(dataPath, "Assets");
+                                        Debug.LogError(databasePath);
                                     }
                                     else
                                     {
@@ -305,8 +312,8 @@ namespace Framework.Editor
                             {
                                 try
                                 {
-                                    string dbpath = databasePath.Replace("Assets/", string.Empty);
-                                    SQLite3Creator.ClearAllTable(dbpath);
+                                    string dbpath = databasePath.Remove(0, 7);
+                                    SQLite3Creator.DeleteDatabase(dbpath);
                                     for (int i = 0; i < sheetLength; i++)
                                     {
                                         rowLength = tableData[i].Length;
@@ -327,10 +334,6 @@ namespace Framework.Editor
                                             }
                                         }
                                     }
-
-                                    EditorUtility.DisplayProgressBar("Refresh assetdatabase...", "Waiting convert finish...", 1);
-
-                                    AssetDatabase.Refresh();
                                     EditorUtility.ClearProgressBar();
 
                                     EditorUtility.DisplayDialog("Tips", "Convert excel to sqlite3 table finished.", "OK");
@@ -339,6 +342,7 @@ namespace Framework.Editor
                                 {
                                     EditorUtility.DisplayDialog("Error", "Convert excel to sqlite3 table has an error:" + ex.Message, "OK");
                                 }
+                                Close();
                             }
 
                         }

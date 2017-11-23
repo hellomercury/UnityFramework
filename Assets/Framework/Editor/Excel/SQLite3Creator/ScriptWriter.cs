@@ -52,9 +52,9 @@ namespace Framework.Editor
                 .Append(" * --->如需进行修改，请将修改内容放置在\"//自定义代码.\"，支持多行。\n")
                 .Append(" *                                                                                    --szn\n")
                 .Append(" */\n\n")
-                .Append("using Framework.DataStruct;\n\n");
-            //            .Append("namespace SQLite3.Data\n")
-            //            .Append("{\n");
+                //.Append("using Framework.DataStruct;\n\n")
+                .Append("namespace Framework.DataStruct\n")
+                .Append("{\n");
 
             sb.Append("    public enum ").Append(filename).Append("Enum\n")
                 .Append("    {\n");
@@ -149,7 +149,7 @@ namespace Framework.Editor
                 .Append("        }\n");
 
             sb.Append("    }\n");
-
+            sb.Append("}\n");
 
             if (!info.Directory.Exists) info.Directory.Create();
             if (info.Exists) info.Delete();
