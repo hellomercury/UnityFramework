@@ -1,7 +1,7 @@
 ﻿/*
- * 数据库数据表结构类
- * --->次类为代码自动生成<---
- * --->如需进行修改，请将修改内容放置在"//自定义代码."，支持多行。
+ * --->SQLite3 database table structure.<---
+ * --->This class code is automatically generated。<---
+ * --->If you need to modify, please place the custom code between <Self Code Begin> and <Self Code End>.
  *                                                                                    --szn
  */
 
@@ -45,9 +45,9 @@ namespace Framework.DataStruct
             Des = InDes;
         }
 
-    //-------------------------------*Self Code Begin*-------------------------------
-    //自定义代码.
-    //-------------------------------*Self Code End*   -------------------------------
+        //-------------------------------*Self Code Begin*-------------------------------
+        //Custom code.
+        //-------------------------------*Self Code End*   -------------------------------
         
 
         public override int GetHashCode()

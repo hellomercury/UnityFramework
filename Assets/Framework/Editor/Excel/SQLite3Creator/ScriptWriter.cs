@@ -38,18 +38,18 @@ namespace Framework.Editor
             else
             {
                 oldContent = new List<string>(4);
-                oldContent.Add("    //-------------------------------*Self Code Begin*-------------------------------");
-                oldContent.Add("    //自定义代码.");
-                oldContent.Add("    //-------------------------------*Self Code End*   -------------------------------");
+                oldContent.Add("        //-------------------------------*Self Code Begin*-------------------------------");
+                oldContent.Add("        //Custom code.");
+                oldContent.Add("        //-------------------------------*Self Code End*   -------------------------------");
             }
 
             string filename = InTableData.TableName;
             StringBuilder sb = new StringBuilder(1024);
             int length = InTableData.ColumnName.Length;
             sb.Append("/*\n")
-                .Append(" * 数据库数据表结构类\n")
-                .Append(" * --->次类为代码自动生成<---\n")
-                .Append(" * --->如需进行修改，请将修改内容放置在\"//自定义代码.\"，支持多行。\n")
+                .Append(" * --->SQLite3 database table structure.<---\n")
+                .Append(" * --->This class code is automatically generated。<---\n")
+                .Append(" * --->If you need to modify, please place the custom code between <Self Code Begin> and <Self Code End>.\n")
                 .Append(" *                                                                                    --szn\n")
                 .Append(" */\n\n")
                 //.Append("using Framework.DataStruct;\n\n")

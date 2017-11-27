@@ -7,45 +7,45 @@
 
 namespace Framework.DataStruct
 {
-    public enum PlayerConfigEnum
+    public enum PlayerDataEnum
     {
         ID,
         Name,
-        IconID,
+        CurrentLevel,
         Life,
         Gold,
         Max
     }
 
-    public class PlayerConfig : Base
+    public class PlayerData : Base
     {
         private readonly int hashCode;
 
-        [Sync((int)PlayerConfigEnum.ID)]
+        [Sync((int)PlayerDataEnum.ID)]
         public int ID { get; private set; }  //The first column name must be ID and type must be an int.
 
-        [Sync((int)PlayerConfigEnum.Name)]
+        [Sync((int)PlayerDataEnum.Name)]
         public string Name { get; set; }  //Player name.
 
-        [Sync((int)PlayerConfigEnum.IconID)]
-        public string IconID { get; set; }  //Player avatar icon.
+        [Sync((int)PlayerDataEnum.CurrentLevel)]
+        public string CurrentLevel { get; set; }  //The level the player is playing
 
-        [Sync((int)PlayerConfigEnum.Life)]
-        public int Life { get; set; }  //The player's maximum health value
+        [Sync((int)PlayerDataEnum.Life)]
+        public int Life { get; set; }  //The player's current health value
 
-        [Sync((int)PlayerConfigEnum.Gold)]
-        public int Gold { get; set; }  //Initial gold
+        [Sync((int)PlayerDataEnum.Gold)]
+        public int Gold { get; set; }  //Player's gold coin
 
-        public PlayerConfig()
+        public PlayerData()
         {
         }
 
-        public PlayerConfig(int InID, string InName, string InIconID, int InLife, int InGold)
+        public PlayerData(int InID, string InName, string InCurrentLevel, int InLife, int InGold)
         {
             hashCode = InID;
             ID = InID;
             Name = InName;
-            IconID = InIconID;
+            CurrentLevel = InCurrentLevel;
             Life = InLife;
             Gold = InGold;
         }
@@ -62,13 +62,13 @@ namespace Framework.DataStruct
 
         public override string ToString()
         {
-            return "PlayerConfig : ID = " + ID+ ", Name = " + Name+ ", IconID = " + IconID+ ", Life = " + Life+ ", Gold = " + Gold;
+            return "PlayerData : ID = " + ID+ ", Name = " + Name+ ", CurrentLevel = " + CurrentLevel+ ", Life = " + Life+ ", Gold = " + Gold;
         }
 
         public override bool Equals(object InObj)
         {
             if (null == InObj) return false;
-            else return InObj is PlayerConfig && (InObj as PlayerConfig).ID == ID;
+            else return InObj is PlayerData && (InObj as PlayerData).ID == ID;
         }
     }
 }

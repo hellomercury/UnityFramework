@@ -27,11 +27,11 @@ namespace Framework.SQLite3
             Assert.IsFalse(string.IsNullOrEmpty(InDataBasePath), "Database path can not be null.");
 
             if (SQLite3Result.OK != SQLite3.Open(ConvertStringToUTF8Bytes(InDataBasePath),
-                out handle, InFlags.GetHashCode(), IntPtr.Zero))
+                out handle, (int)InFlags, IntPtr.Zero))
             {
                 SQLite3.Close(handle);
                 handle = IntPtr.Zero;
-                Debug.LogError("Database failed to open.");
+                Debug.LogError( "Database failed to open.");
             }
             else
             {

@@ -75,32 +75,34 @@ namespace Framework.Editor
                                     if (null != row3) data.Head[2][j] = row3.GetCell(j);
                                 }
 
-                                int length = rowCount - 3;
-                                List<ICell[]> content = new List<ICell[]>(length);
-                                IRow row;
-                                for (int j = 0, m = 3; j < length; ++j, ++m)
+                                if(rowCount > 3)
                                 {
-                                    row = sheet.GetRow(m);
-                                    if (null != row)
+                                    int length = rowCount - 3;
+                                    List<ICell[]> content = new List<ICell[]>(length);
+                                    IRow row;
+                                    for (int j = 0, m = 3; j < length; ++j, ++m)
                                     {
-                                        ICell[] cells = new ICell[colCount];
-                                        for (int k = 0; k < colCount; ++k)
+                                        row = sheet.GetRow(m);
+                                        if (null != row)
                                         {
-                                            cells[k] = row.GetCell(k);
+                                            ICell[] cells = new ICell[colCount];
+                                            for (int k = 0; k < colCount; ++k)
+                                            {
+                                                cells[k] = row.GetCell(k);
+                                            }
+                                            content.Add(cells);
                                         }
-                                        content.Add(cells);
                                     }
-                                }
 
-                                data.Content = content.ToArray();
-                                data.ContentLength = content.Count;
+                                    data.Content = content.ToArray();
+                                    data.ContentLength = content.Count;
+                                }
 
                                 datas.Add(data);
                             }
-                            else EditorUtility.DisplayDialog("错误", info.Name + " 文档基本信息不匹配", "确定");
+                            else EditorUtility.DisplayDialog("Error", info.Name + " property name and type number does not match.", "Ok");
                         }
-                        else if (!(sheet.SheetName.Contains("Sheet") || sheet.SheetName.Contains("工作表")))
-                            EditorUtility.DisplayDialog("错误", info.Name + " 文档基本信息不完整", "确定");
+                        else EditorUtility.DisplayDialog("Error", info.Name + " missing basic configuration information, property name and type.", "Ok");
                     }
 
                     book.Close();
