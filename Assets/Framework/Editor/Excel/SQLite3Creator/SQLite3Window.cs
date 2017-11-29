@@ -10,6 +10,7 @@ namespace Framework.Editor
     public class SQLite3Window : EditorWindow
     {
         private static SQLite3Window window;
+        private GUIStyle centerTittleStyle, leftTittleStyle, btnStyle;
         private Vector2 scrollPos;
         float progressValue = 1.0f;
 
@@ -90,8 +91,8 @@ namespace Framework.Editor
             window = CreateInstance<SQLite3Window>();
             window.LoadExcel(Application.dataPath + "/Design/StaticExcels/Item.xlsx");
             window.titleContent = new GUIContent("SQLite3", "Create SQLite3 table from excel.");
-            window.minSize = new Vector2(520, 600);
-            window.maxSize = new Vector2(520, 2000);
+            window.minSize = new Vector2(555, 600);
+            window.maxSize = new Vector2(555, 2000);
             window.Show();
         }
 
@@ -104,6 +105,22 @@ namespace Framework.Editor
 
             selectPrefsKey = "SingleOrMultiSelectPrefsKey";
             isSingleFile = preSelect = EditorPrefs.GetBool(selectPrefsKey, true);
+
+            centerTittleStyle = new GUIStyle();
+            centerTittleStyle.fontStyle = FontStyle.Bold;
+            centerTittleStyle.alignment = TextAnchor.MiddleCenter;
+            centerTittleStyle.normal = new GUIStyleState();
+            centerTittleStyle.normal.textColor = EditorGUIUtility.isProSkin ? new Color(.7f, .7f, .7f) : Color.black;
+
+
+            leftTittleStyle = new GUIStyle();
+            leftTittleStyle.fontStyle = FontStyle.Bold;
+            leftTittleStyle.alignment = TextAnchor.MiddleLeft;
+            leftTittleStyle.normal = new GUIStyleState();
+            leftTittleStyle.normal.textColor = EditorGUIUtility.isProSkin ? new Color(.7f, .7f, .7f) : Color.black;
+
+            btnStyle = new GUIStyle();
+            btnStyle.alignment = TextAnchor.MiddleCenter;
         }
 
         private void OnDisable()
@@ -194,8 +211,8 @@ namespace Framework.Editor
                         else
                             data[i].ColumnDescribes[j] = InExcelData[i].Head[2][j].StringCellValue;
 
-                        data[i].SQLite3Constraints[j] = SQLite3Constraint.PrimaryKey | SQLite3Constraint.Unique | SQLite3Constraint.AutoIncrement;
-
+                        if (0 == j) data[i].SQLite3Constraints[j] = SQLite3Constraint.PrimaryKey | SQLite3Constraint.Unique | SQLite3Constraint.NotNull;
+                        else data[i].SQLite3Constraints[j] = SQLite3Constraint.Default;
                         data[i].IsColumnEnables[j] = true;
                     }
                 }
@@ -235,8 +252,8 @@ namespace Framework.Editor
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            singlePathConfig.ExcelPath = EditorGUILayout.TextField("Excel Path", singlePathConfig.ExcelPath, GUILayout.Width(410));
-                            if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
+                            singlePathConfig.ExcelPath = EditorGUILayout.TextField("Excel Path", singlePathConfig.ExcelPath, GUILayout.Width(440));
+                            if (GUILayout.Button("Select", GUILayout.MaxWidth(88)))
                             {
                                 string singlePath = singlePathConfig.ExcelPath;
                                 int index = singlePath.LastIndexOf("/", StringComparison.Ordinal);
@@ -272,8 +289,8 @@ namespace Framework.Editor
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            multiPathConfig.ExcelPath = EditorGUILayout.TextField("Excel Directory", multiPathConfig.ExcelPath, GUILayout.Width(410));
-                            if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
+                            multiPathConfig.ExcelPath = EditorGUILayout.TextField("Excel Directory", multiPathConfig.ExcelPath, GUILayout.Width(440));
+                            if (GUILayout.Button("Select", GUILayout.MaxWidth(88)))
                             {
                                 string multiPath = multiPathConfig.ExcelPath;
                                 string path = EditorUtility.OpenFolderPanel("Open Excel Directory", multiPath, "");
@@ -314,8 +331,8 @@ namespace Framework.Editor
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            config.DbPath = EditorGUILayout.TextField("Database Save Path", config.DbPath, GUILayout.Width(410));
-                            if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
+                            config.DbPath = EditorGUILayout.TextField("Database Save Path", config.DbPath, GUILayout.Width(440));
+                            if (GUILayout.Button("Select", GUILayout.MaxWidth(88)))
                             {
                                 string path = config.DbPath;
                                 int index = path.LastIndexOf("/", StringComparison.Ordinal);
@@ -339,8 +356,8 @@ namespace Framework.Editor
 
                         GUILayout.BeginHorizontal();
                         {
-                            config.ScriptPath = EditorGUILayout.TextField("Script Save Directory", config.ScriptPath, GUILayout.Width(410));
-                            if (GUILayout.Button("Select", GUILayout.MaxWidth(82)))
+                            config.ScriptPath = EditorGUILayout.TextField("Script Save Directory", config.ScriptPath, GUILayout.Width(440));
+                            if (GUILayout.Button("Select", GUILayout.MaxWidth(88)))
                             {
                                 string path = EditorUtility.OpenFolderPanel("Script Save Directory", config.ScriptPath, "");
                                 if (!string.IsNullOrEmpty(path))
@@ -432,121 +449,151 @@ namespace Framework.Editor
                                     GUILayout.BeginHorizontal();
                                     {
                                         tableData[i][j].TableName = EditorGUILayout.TextField("Table Name",
-                                            tableData[i][j].TableName, GUILayout.Width(410));
+                                            tableData[i][j].TableName, GUILayout.Width(440));
 
                                         tableData[i][j].IsEnable = EditorGUILayout.ToggleLeft("Enable",
-                                            tableData[i][j].IsEnable, GUILayout.Width(80));
+                                            tableData[i][j].IsEnable, GUILayout.Width(88));
                                     }
                                     GUILayout.EndHorizontal();
 
                                     if (tableData[i][j].IsEnable)
                                     {
                                         GUILayout.Space(10);
-
-                                        columnLength = tableData[i][j].ColumnName.Length;
-                                        for (int k = 0; k < columnLength; ++k)
+                                        EditorGUILayout.BeginVertical("box");
                                         {
-                                            tableData[i][j].IsColumnEnables[k] = EditorGUILayout.BeginToggleGroup(
-                                                "Enable",
-                                                tableData[i][j].IsColumnEnables[k]);
+                                            GUILayout.BeginHorizontal();
                                             {
-                                                GUILayout.BeginVertical("box");
-                                                {
-                                                    GUILayout.BeginHorizontal();
-                                                    {
-                                                        tableData[i][j].ColumnName[k] =
-                                                            EditorGUILayout.TextField(tableData[i][j].ColumnName[k],
-                                                                GUILayout.MaxWidth(100));
-                                                        tableData[i][j].ColumnDescribes[k] =
-                                                            EditorGUILayout.TextField(tableData[i][j].ColumnDescribes[k],
-                                                                GUILayout.MaxWidth(300));
-                                                        tableData[i][j].SQLite3Types[k] =
-                                                            (SQLite3ValueType)
-                                                                EditorGUILayout.EnumPopup(tableData[i][j].SQLite3Types[k],
-                                                                    GUILayout.MaxWidth(100));
+                                                EditorGUILayout.LabelField("Property Name", centerTittleStyle, GUILayout.Width(104));
+                                                GUILayout.Space(4);
+                                                EditorGUILayout.LabelField("Property Describe", centerTittleStyle, GUILayout.Width(286));
+                                                GUILayout.Space(4);
+                                                EditorGUILayout.LabelField("SQLite3 Type", centerTittleStyle, GUILayout.Width(104));
 
-                                                        //tableData[i][j].SQLite3Constraints[k] =
-                                                        //    (SQLite3Constraint)
-                                                        //        EditorGUILayout.EnumPopup(tableData[i][j].SQLite3Constraints[k],
-                                                        //            GUILayout.MaxWidth(100));
-                                                    }
-                                                    GUILayout.EndHorizontal();
-                                                    GUILayout.Space(10);
-                                                    GUILayout.BeginHorizontal();
-                                                    {
-                                                        SQLite3Constraint constraint = tableData[i][j].SQLite3Constraints[k];
-                                                        bool isPrimaryKey = (constraint & SQLite3Constraint.PrimaryKey) != 0;
-                                                        bool isAutoIncrement = (constraint & SQLite3Constraint.AutoIncrement) != 0;
-                                                        bool isNotNull = (constraint & SQLite3Constraint.NotNull) != 0;
-                                                        bool isUnique = (constraint & SQLite3Constraint.Unique) != 0;
-                                                        bool isDefault = (constraint & SQLite3Constraint.Default) != 0;
-
-                                                        isPrimaryKey = EditorGUILayout.ToggleLeft("PrimaryKey", isPrimaryKey, GUILayout.Width(90));
-                                                        isAutoIncrement = EditorGUILayout.ToggleLeft("AutoIncrement", isAutoIncrement, GUILayout.Width(120));
-                                                        isNotNull = EditorGUILayout.ToggleLeft("NotNull", isNotNull, GUILayout.Width(90));
-                                                        isUnique = EditorGUILayout.ToggleLeft("Unique", isUnique, GUILayout.Width(90));
-                                                        if (isPrimaryKey || isAutoIncrement || isNotNull || isUnique) isDefault = false;
-                                                        isDefault = EditorGUILayout.ToggleLeft("Default", isDefault, GUILayout.Width(90));
-                                                        if (isDefault) isPrimaryKey = isAutoIncrement = isNotNull = isUnique = false;
-                                                        
-                                                        if (isDefault) constraint |= SQLite3Constraint.Default;
-                                                        else constraint = constraint & ~SQLite3Constraint.Default;
-
-                                                        if (isPrimaryKey) constraint |= SQLite3Constraint.PrimaryKey;
-                                                        else constraint = constraint & ~SQLite3Constraint.PrimaryKey;
-
-                                                        if (isAutoIncrement) constraint |= SQLite3Constraint.AutoIncrement;
-                                                        else constraint = constraint & ~SQLite3Constraint.AutoIncrement;
-
-                                                        if (isNotNull) constraint |= SQLite3Constraint.NotNull;
-                                                        else constraint = constraint & ~SQLite3Constraint.NotNull;
-
-                                                        if (isUnique) constraint |= SQLite3Constraint.Unique;
-                                                        else constraint = constraint & ~SQLite3Constraint.Unique;
-
-                                                        tableData[i][j].SQLite3Constraints[k] = constraint;
-                                                    }
-                                                    GUILayout.EndHorizontal();
-                                                }
-                                                GUILayout.EndVertical();
                                             }
-                                            EditorGUILayout.EndToggleGroup();
+                                            GUILayout.EndHorizontal();
+                                            GUILayout.Space(10);
+
+                                            columnLength = tableData[i][j].ColumnName.Length;
+                                            for (int k = 0; k < columnLength; ++k)
+                                            {
+                                                tableData[i][j].IsColumnEnables[k] = EditorGUILayout.BeginToggleGroup(
+                                                    "Enable",
+                                                    tableData[i][j].IsColumnEnables[k]);
+                                                {
+                                                    GUILayout.BeginVertical("box");
+                                                    {
+                                                        GUILayout.BeginHorizontal();
+                                                        {
+                                                            tableData[i][j].ColumnName[k] =
+                                                                EditorGUILayout.TextField(tableData[i][j].ColumnName[k],
+                                                                    GUILayout.MaxWidth(104));
+                                                            GUILayout.Space(4);
+                                                            tableData[i][j].ColumnDescribes[k] =
+                                                                EditorGUILayout.TextField(tableData[i][j].ColumnDescribes[k],
+                                                                    GUILayout.MaxWidth(286));
+                                                            GUILayout.Space(4);
+                                                            tableData[i][j].SQLite3Types[k] =
+                                                                (SQLite3ValueType)
+                                                                    EditorGUILayout.EnumPopup(tableData[i][j].SQLite3Types[k],
+                                                                        GUILayout.MaxWidth(104));
+
+                                                            //tableData[i][j].SQLite3Constraints[k] =
+                                                            //    (SQLite3Constraint)
+                                                            //        EditorGUILayout.EnumPopup(tableData[i][j].SQLite3Constraints[k],
+                                                            //            GUILayout.MaxWidth(100));
+                                                        }
+                                                        GUILayout.EndHorizontal();
+                                                        GUILayout.Space(10);
+                                                        GUILayout.BeginHorizontal("box");
+                                                        {
+                                                            SQLite3Constraint constraint = tableData[i][j].SQLite3Constraints[k];
+                                                            bool isPrimaryKey = (constraint & SQLite3Constraint.PrimaryKey) != 0;
+                                                            bool isAutoIncrement = (constraint & SQLite3Constraint.AutoIncrement) != 0;
+                                                            bool isNotNull = (constraint & SQLite3Constraint.NotNull) != 0;
+                                                            bool isUnique = (constraint & SQLite3Constraint.Unique) != 0;
+                                                            bool isDefault = (constraint & SQLite3Constraint.Default) != 0;
+
+                                                            EditorGUILayout.LabelField("SQLite3 Constraint:", leftTittleStyle, GUILayout.Width(114));
+                                                            isPrimaryKey = EditorGUILayout.ToggleLeft("PrimaryKey", isPrimaryKey, GUILayout.Width(80));
+                                                            isAutoIncrement = EditorGUILayout.ToggleLeft("AutoIncrement", isAutoIncrement, GUILayout.Width(104));
+                                                            isNotNull = EditorGUILayout.ToggleLeft("NotNull", isNotNull, GUILayout.Width(60));
+                                                            isUnique = EditorGUILayout.ToggleLeft("Unique", isUnique, GUILayout.Width(60));
+                                                            if (isPrimaryKey || isAutoIncrement || isNotNull || isUnique) isDefault = false;
+                                                            isDefault = EditorGUILayout.ToggleLeft("Default", isDefault, GUILayout.Width(60));
+                                                            if (isDefault) isPrimaryKey = isAutoIncrement = isNotNull = isUnique = false;
+
+                                                            if (isDefault) constraint |= SQLite3Constraint.Default;
+                                                            else constraint = constraint & ~SQLite3Constraint.Default;
+
+                                                            if (isPrimaryKey) 
+                                                            {
+                                                                for (int m = 0; m < columnLength; m++)
+                                                                {
+                                                                    tableData[i][j].SQLite3Constraints[m] &= ~SQLite3Constraint.PrimaryKey;
+                                                                }
+                                                                constraint |= SQLite3Constraint.PrimaryKey;
+                                                            }
+                                                            else constraint = constraint & ~SQLite3Constraint.PrimaryKey;
+
+                                                            if (isAutoIncrement) constraint |= SQLite3Constraint.AutoIncrement;
+                                                            else constraint &= ~SQLite3Constraint.AutoIncrement;
+
+                                                            if (isNotNull) constraint |= SQLite3Constraint.NotNull;
+                                                            else constraint &= ~SQLite3Constraint.NotNull;
+
+                                                            if (isUnique) constraint |= SQLite3Constraint.Unique;
+                                                            else constraint &= ~SQLite3Constraint.Unique;
+
+                                                            tableData[i][j].SQLite3Constraints[k] = constraint;
+                                                        }
+                                                        GUILayout.EndHorizontal();
+                                                    }
+                                                    GUILayout.EndVertical();
+                                                }
+                                                EditorGUILayout.EndToggleGroup();
+                                            }
+
+                                            EditorGUILayout.BeginHorizontal("box");
+                                            {
+                                                tableData[i][j].IsNeedCreateScript =
+                                                EditorGUILayout.ToggleLeft("Need create or update script?",
+                                                    tableData[i][j].IsNeedCreateScript, GUILayout.Width(258));
+                                                GUILayout.Space(10);
+                                                if (GUILayout.Button("Create", GUILayout.Width(242)))
+                                                {
+                                                    try
+                                                    {
+                                                        if (string.IsNullOrEmpty(config.DbPath))
+                                                        {
+                                                            EditorUtility.DisplayDialog("Tips", "Please select the storage location of the database.", "OK");
+                                                        }
+                                                        else
+                                                        {
+                                                            if (string.IsNullOrEmpty(config.ScriptPath))
+                                                            {
+                                                                EditorUtility.DisplayDialog("Tips", "Please select the storage location of the script.", "OK");
+                                                            }
+                                                            else
+                                                            {
+                                                                if (tableData[i][j].IsNeedCreateScript) ScriptWriter.Writer(config.ScriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]);
+                                                                SQLite3Creator.Creator(ref tableData[i][j], config.DbPath.Remove(0, 7));
+
+                                                                EditorUtility.DisplayDialog("Tips", "Convert excel to sqlite3 table finished.", "OK");
+
+                                                                if (isSingleFile) Close();
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        EditorUtility.DisplayDialog("Error", "Convert excel to sqlite3 table has an error:" + ex.Message, "OK");
+                                                    }
+                                                }  
+                                            }
+                                            EditorGUILayout.EndHorizontal();
+
                                         }
-
-                                        tableData[i][j].IsNeedCreateScript =
-                                            EditorGUILayout.ToggleLeft("Need create or update script?",
-                                                tableData[i][j].IsNeedCreateScript, GUILayout.Width(390));
-                                        GUILayout.Space(10);
-                                        if (GUILayout.Button("Create", GUILayout.Width(490)))
-                                        {
-                                            try
-                                            {
-                                                if (string.IsNullOrEmpty(config.DbPath))
-                                                {
-                                                    EditorUtility.DisplayDialog("Tips", "Please select the storage location of the database.", "OK");
-                                                }
-                                                else
-                                                {
-                                                    if (string.IsNullOrEmpty(config.ScriptPath))
-                                                    {
-                                                        EditorUtility.DisplayDialog("Tips", "Please select the storage location of the script.", "OK");
-                                                    }
-                                                    else
-                                                    {
-                                                        if (tableData[i][j].IsNeedCreateScript) ScriptWriter.Writer(config.ScriptPath + tableData[i][j].TableName + ".cs", ref tableData[i][j]);
-                                                        SQLite3Creator.Creator(ref tableData[i][j], config.DbPath.Remove(0, 7));
-
-                                                        EditorUtility.DisplayDialog("Tips", "Convert excel to sqlite3 table finished.", "OK");
-
-                                                        if (isSingleFile) Close();
-                                                    }
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                EditorUtility.DisplayDialog("Error", "Convert excel to sqlite3 table has an error:" + ex.Message, "OK");
-                                            }
-                                        }
+                                        EditorGUILayout.EndVertical();
                                     }
                                 }
                                 EditorGUILayout.EndVertical();
