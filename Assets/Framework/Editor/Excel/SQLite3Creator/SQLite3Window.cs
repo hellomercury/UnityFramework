@@ -32,12 +32,7 @@ namespace Framework.Editor
                 {
                     excelPath = value.Replace(dataPath, string.Empty);
                     EditorPrefs.SetString(excelPrefsKey, excelPath);
-<<<<<<< HEAD
                 }
-=======
-                    EditorPrefs.SetString(EditorConfig.EditorPrefsKeys, excelPrefsKey + ",");
-                }
->>>>>>> fa0bab98ab1569fdd29a2c569277111a99ed536c
             }
 
             private string scriptPath, scriPrefsKey;
