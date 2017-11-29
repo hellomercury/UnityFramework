@@ -60,7 +60,7 @@ namespace Framework.Editor
                 .Append("    {\n");
             for (int i = 0; i < length; i++)
             {
-                if (InTableData.IsColumnEnable[i])
+                if (InTableData.IsColumnEnables[i])
                     sb.Append("        ").Append(InTableData.ColumnName[i]).Append(",\n");
             }
             sb.Append("        Max\n");
@@ -72,19 +72,19 @@ namespace Framework.Editor
             sb.Append("        private readonly int hashCode;\n\n");
             for (int i = 0; i < length; i++)
             {
-                if (InTableData.IsColumnEnable[i])
+                if (InTableData.IsColumnEnables[i])
                 {
                     sb.Append("        [Sync((int)").Append(filename).Append("Enum.").Append(InTableData.ColumnName[i]).Append(")]\n")
                     .Append("        public ")
-                  .Append(InTableData.CSharpType[i])
+                  .Append(InTableData.CSharpTypes[i])
                     .Append(" ")
                   .Append(InTableData.ColumnName[i])
                     .Append(0 == i ? " { get; private set; }" : " { get; set; }");
 
-                    if (null == InTableData.ColumnDescribe || string.IsNullOrEmpty(InTableData.ColumnDescribe[i]))
+                    if (null == InTableData.ColumnDescribes || string.IsNullOrEmpty(InTableData.ColumnDescribes[i]))
                         sb.Append("\n\n");
                     else
-                        sb.Append("  //").Append(InTableData.ColumnDescribe[i]).Append("\n\n");
+                        sb.Append("  //").Append(InTableData.ColumnDescribes[i]).Append("\n\n");
                 }
             }
 
@@ -97,8 +97,8 @@ namespace Framework.Editor
             sb.Append("        public ").Append(filename).Append("(");
             for (int i = 0; i < length; ++i)
             {
-                if (InTableData.IsColumnEnable[i])
-                    sb.Append(InTableData.CSharpType[i])
+                if (InTableData.IsColumnEnables[i])
+                    sb.Append(InTableData.CSharpTypes[i])
                         .Append(" In").Append(InTableData.ColumnName[i])
                         .Append(", ");
             }
@@ -109,7 +109,7 @@ namespace Framework.Editor
 
             for (int i = 0; i < length; ++i)
             {
-                if(InTableData.IsColumnEnable[i])
+                if(InTableData.IsColumnEnables[i])
                     sb.Append("            ").Append(InTableData.ColumnName[i])
                         .Append(" = In").Append(InTableData.ColumnName[i])
                         .Append(";\n");
@@ -134,7 +134,7 @@ namespace Framework.Editor
 
             for (int i = 1; i < length; ++i)
             {
-                if(InTableData.IsColumnEnable[i])
+                if(InTableData.IsColumnEnables[i])
                     sb.Append("+ \", ").Append(InTableData.ColumnName[i]).Append(" = \" + ").
                         Append(InTableData.ColumnName[i]);
             }

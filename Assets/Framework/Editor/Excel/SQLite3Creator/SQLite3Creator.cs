@@ -33,11 +33,11 @@ namespace Framework.Editor
             int length = InTableData.ColumnName.Length;
             for (int i = 0; i < length; i++)
             {
-                if (InTableData.IsColumnEnable[i])
+                if (InTableData.IsColumnEnables[i])
                 {
                     sb.Append(InTableData.ColumnName[i])
                       .Append(" ")
-                      .Append(InTableData.SQLite3Type[i])
+                      .Append(InTableData.SQLite3Types[i])
                       .Append(", ");
                 }
             }
@@ -45,24 +45,24 @@ namespace Framework.Editor
             sb.Append(")");
             handle.Exec(sb.ToString());
 
-            if (null != InTableData.ExcelContent)
+            if (null != InTableData.ExcelContents)
             {
-                length = InTableData.ExcelContent.Length;
+                length = InTableData.ExcelContents.Length;
                 int subLength;
                 ICell cell;
                 for (int i = 0; i < length; i++)
                 {
-                    subLength = InTableData.ExcelContent[i].Length;
+                    subLength = InTableData.ExcelContents[i].Length;
                     sb.Remove(0, sb.Length);
                     sb.Append("INSERT INTO ").Append(InTableData.TableName).Append(" VALUES(");
                     for (int j = 0; j < subLength; j++)
                     {
-                        if (InTableData.IsColumnEnable[j])
+                        if (InTableData.IsColumnEnables[j])
                         {
-                            cell = InTableData.ExcelContent[i][j];
-                            switch (InTableData.SQLite3Type[j])
+                            cell = InTableData.ExcelContents[i][j];
+                            switch (InTableData.SQLite3Types[j])
                             {
-                                case ValueType.INTEGER:
+                                case SQLite3ValueType.INTEGER:
                                     if (null == cell)
                                         sb.Append(0);
                                     else
@@ -91,7 +91,7 @@ namespace Framework.Editor
                                     }
                                     break;
 
-                                case ValueType.REAL:
+                                case SQLite3ValueType.REAL:
                                     if (null == cell)
                                         sb.Append(0);
                                     else
