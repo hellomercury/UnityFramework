@@ -31,7 +31,6 @@ namespace Framework.Editor
                 {
                     excelPath = value.Replace(dataPath, string.Empty);
                     EditorPrefs.SetString(excelPrefsKey, excelPath);
-                    EditorPrefs.SetString(EditorConfig.EditorPrefsKeys, excelPrefsKey + ",");
                 }
             }
 
@@ -48,7 +47,6 @@ namespace Framework.Editor
 
                     scriptPath = value.Replace(dataPath, string.Empty);
                     EditorPrefs.SetString(scriPrefsKey, scriptPath);
-                    EditorPrefs.SetString(EditorConfig.EditorPrefsKeys, scriPrefsKey + ",");
                 }
             }
 
@@ -64,7 +62,6 @@ namespace Framework.Editor
                 {
                     dbPath = value.Replace(dataPath, string.Empty);
                     EditorPrefs.SetString(dbPrefsKey, dbPath);
-                    EditorPrefs.SetString(EditorConfig.EditorPrefsKeys, dbPrefsKey + ",");
                 }
             }
 
@@ -106,7 +103,6 @@ namespace Framework.Editor
 
             selectPrefsKey = "SingleOrMultiSelectPrefsKey";
             isSingleFile = preSelect = EditorPrefs.GetBool(selectPrefsKey, true);
-            EditorPrefs.SetString(EditorConfig.EditorPrefsKeys, selectPrefsKey + ",");
         }
 
         private void OnDisable()
