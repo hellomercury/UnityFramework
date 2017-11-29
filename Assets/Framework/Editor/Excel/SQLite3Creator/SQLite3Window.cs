@@ -93,7 +93,7 @@ namespace Framework.Editor
             window.titleContent = new GUIContent("SQLite3", "Create SQLite3 table from excel.");
             window.minSize = new Vector2(555, 600);
             window.maxSize = new Vector2(555, 2000);
-            window.Show();
+            window.ShowUtility();
         }
 
         private void OnEnable()
