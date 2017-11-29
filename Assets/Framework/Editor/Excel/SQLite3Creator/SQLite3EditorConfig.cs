@@ -1,8 +1,9 @@
-﻿using NPOI.SS.UserModel;
+﻿using Framework.SQLite3;
+using NPOI.SS.UserModel;
 
 namespace Framework.Editor
 {
-    public enum ValueType
+    public enum SQLite3ValueType
     {
         INTEGER,
         REAL,
@@ -15,13 +16,14 @@ namespace Framework.Editor
         public bool IsEnable;
         public string TableName;
         public string[] ColumnName;
-        public ValueType[] SQLite3Type;
-        public string[] CSharpType;
-        public string[] ColumnDescribe;
-        public bool[] IsColumnEnable;
+        public SQLite3ValueType[] SQLite3Types;
+        public SQLite3Constraint[] SQLite3Constraints;
+        public string[] CSharpTypes;
+        public string[] ColumnDescribes;
+        public bool[] IsColumnEnables;
         public bool IsNeedCreateScript;
 
-        public ICell[][] ExcelContent;
+        public ICell[][] ExcelContents;
     }
 
     public class SQLite3EditorConfig
