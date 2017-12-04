@@ -515,14 +515,22 @@ namespace Framework.Editor
 
                                                             EditorGUILayout.LabelField("SQLite3 Constraint:", leftTittleStyle, GUILayout.Width(114));
                                                             isPrimaryKey = EditorGUILayout.ToggleLeft("PrimaryKey", isPrimaryKey, GUILayout.Width(80));
+
+                                                            if(tableData[i][j].SQLite3Types[k] != SQLite3ValueType.INTEGER)
+                                                            {
+                                                                GUI.enabled = false;
+                                                                isAutoIncrement = false;
+                                                            }
+
                                                             isAutoIncrement = EditorGUILayout.ToggleLeft("AutoIncrement", isAutoIncrement, GUILayout.Width(104));
+                                                            GUI.enabled = true;
                                                             isNotNull = EditorGUILayout.ToggleLeft("NotNull", isNotNull, GUILayout.Width(60));
                                                             isUnique = EditorGUILayout.ToggleLeft("Unique", isUnique, GUILayout.Width(60));
-                                                            if (isPrimaryKey || isAutoIncrement || isNotNull || isUnique) isDefault = false;
+                                                            isDefault = !(isPrimaryKey || isAutoIncrement || isNotNull || isUnique);
                                                             isDefault = EditorGUILayout.ToggleLeft("Default", isDefault, GUILayout.Width(60));
                                                             if (isDefault) isPrimaryKey = isAutoIncrement = isNotNull = isUnique = false;
 
-                                                            if (isDefault) constraint |= SQLite3Constraint.Default;
+                                                            if (isDefault) constraint = SQLite3Constraint.Default;
                                                             else constraint = constraint & ~SQLite3Constraint.Default;
 
                                                             if (isPrimaryKey) 

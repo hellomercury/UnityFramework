@@ -38,6 +38,7 @@ namespace Framework.Editor
                     sb.Append(InTableData.ColumnName[i])
                       .Append(" ")
                       .Append(InTableData.SQLite3Types[i])
+                      .Append(GetConnstraint(InTableData.SQLite3Constraints[i]))
                       .Append(", ");
                 }
             }
@@ -162,6 +163,22 @@ namespace Framework.Editor
             }
 
             handle.CloseDB();
+        }
+
+        private static string GetConnstraint(SQLite3Constraint InConstraint)
+        {
+            if (InConstraint == SQLite3Constraint.Default) return string.Empty;
+            else
+            {
+                string constraint = string.Empty;
+                if ((InConstraint & SQLite3Constraint.PrimaryKey) != 0) constraint += " PRIMARY KEY ";
+
+                if ((InConstraint & SQLite3Constraint.AutoIncrement) != 0) constraint += " AUTOINCREMENT ";
+                if ((InConstraint & SQLite3Constraint.NotNull) != 0) constraint += " NOT NULL ";
+                if ((InConstraint & SQLite3Constraint.Unique) != 0) constraint += " UNIQUE ";
+
+                return constraint;
+            }
         }
     }
 }
